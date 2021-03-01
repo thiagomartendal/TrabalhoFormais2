@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Linguagens Formais e Compiladores
+    </title>
+    <link href="{{ url_for('static',filename='css/estilo.css') }}" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="{{ url_for('static',filename='js/script.js') }}"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Lingugens Formais e Compiladores</h1>
+    </header>
+    <section>
+      <div id="painel-esquerda">
+        <div id="caixas">
+          <div id="lista-itens" class="caixa">
+            <div class="titulo">
+              Lista de Itens
+            </div>
+            <div class="conteudo">
+              {% if itens|length > 0 %}
+              {% for l in itens %}
+              <a href="/editar?pos={{ l.2 }}&tipo={{ l.1 }}">{{ l.0 }}: {{ l.1 }}</a>
+              <br />
+              <a href="/salvar?pos={{ l.2 }}&tipo={{ l.1 }}" class="btn">Salvar</a>
+              <a href="/exibir?pos={{ l.2 }}&tipo={{ l.1 }}" class="btn">Exibir</a>
+              <hr />
+              {% endfor %}
+              {% else %}
+              Lista vazia.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="painel-centro">
+        <nav>
+          <input type="button" value="Autômato Finito" class="btn" onclick="novoAF()" />
+          <input type="button" value="Gramática Regular" class="btn" onclick="novaGR()" />
+          <input type="button" value="Expressão Regular" class="btn" />
+        </nav>
+        <div id="fazer-automato" class="forms-inicio">
+          <form method="post">
+            Nome do Autômato: <input type="text" name="nome-automato" required />
+            <br />
+            <br />
+            Edição do Autômato
+            <br />
+            <textarea name="texto-automato"></textarea>
+            <br />
+            <input type="submit" name="criar-automato" value="Confirmar" class="btn" />
+          </form>
+        </div>
+        <div id="fazer-gramatica" class="forms-inicio">
+          <form method="post">
+            Nome da Gramática: <input type="text" name="nome-gramatica" required />
+            <br />
+            <br />
+            Edição da Gramática
+            <br />
+            <textarea name="texto-gramatica"></textarea>
+            <br />
+            <input type="submit" name="criar-gramatica" value="Confirmar" class="btn" />
+          </form>
+        </div>
+      </div>
+    </section>
+    <footer>
+    </footer>
+  </body>
+</html>

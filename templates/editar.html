@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Linguagens Formais e Compiladores
+    </title>
+    <link href="{{ url_for('static',filename='css/estilo.css') }}" type="text/css" rel="stylesheet" />
+  </head>
+  <body>
+    <header>
+      <h1>Lingugens Formais e Compiladores</h1>
+    </header>
+    <section>
+      <div id="editar">
+        {% if tipo == "AF" %}
+        <form method="post">
+          Nome do Autômato: <input type="text" name="nome-automato" value="{{ nomeAutomato }}" required />
+          <br />
+          <br />
+          Edição do Autômato
+          <br />
+          <textarea name="texto-automato">{{ textoAutomato }}</textarea>
+          <br />
+          <input type="submit" name="editar-automato" value="Confirmar" class="btn" />
+          <a href="/" class="lk">Página Inicial</a>
+        </form>
+        {% elif tipo == "GR" %}
+        <form method="post">
+          Nome da Gramática: <input type="text" name="nome-gramatica" value="{{ nomeGramatica }}" required />
+          <br />
+          <br />
+          Edição da Gramática
+          <br />
+          <textarea name="texto-gramatica">{{ textoGramatica }}</textarea>
+          <br />
+          <input type="submit" name="editar-gramatica" value="Confirmar" class="btn" />
+          <a href="/" class="lk">Página Inicial</a>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+    <footer>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Linguagens Formais e Compiladores
+    </title>
+    <link href="{{ url_for('static',filename='css/estilo.css') }}" type="text/css" rel="stylesheet" />
+  </head>
+  <body>
+    <header>
+      <h1>Lingugens Formais e Compiladores</h1>
+    </header>
+    <section>
+      <div id="exibir">
+        <br />
+        {% if tipo == "AF" %}
+        <h1>{{ nomeAutomato }}</h1>
+        <table border="1">
+          <tr>
+            <th>
+            </th>
+            {% for s in simbolosAutomato %}
+            <th>
+              {{ s }}
+            </th>
+            {% endfor %}
+          </tr>
+          {% for k, v in dicionario.items() %}
+          <tr>
+            <td>
+              {{ k }}
+            </td>
+            {% for l in v %}
+            <td>
+              {{ l }}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </table>
+        {% elif tipo == "GR" %}
+        <h1>{{ nomeGramatica }}</h1>
+        <br />
+        <div class="texto-gramatica">
+        {{ textoGramatica|safe }}
+        </div>
+        {% endif %}
+        <br />
+        <a href="/" class="lk">Página Inicial</a>
+      </div>
+    </section>
+    <footer>
+    </footer>
+  </body>
+</html>
