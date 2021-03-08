@@ -1,0 +1,4 @@
+S0->aA|bB|a|&
+S->aA|bB|a
+A->aA|a
+B->bB|bS
