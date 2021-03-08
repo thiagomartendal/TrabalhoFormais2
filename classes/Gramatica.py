@@ -1,4 +1,8 @@
 from .Item import Item, TipoItem
+from .Automato import Automato
+from .Estado import Estado
+from .Transicao import Transicao
+from string import ascii_uppercase
 
 class Gramatica(Item):
 
@@ -106,3 +110,42 @@ class Gramatica(Item):
             return True
         except ValueError:
             return False
+
+    def conversaoEmAFND(self):
+        af = Automato(self.get_nome() + " (convertido para AF)")
+
+        estado_final = Estado(self.novoEstado(), 2)
+
+        for estado, lista in self.__producoes.items():
+            estado_partida = None
+            if estado == self.__simbolo_inicial:
+                estado_partida = Estado(estado, 0)
+            else:
+                estado_partida = Estado(estado, 1)
+            
+            af.addEstado(estado_partida)
+
+            for p in lista:
+                if len(p) == 1:
+                    af.addTransicao(Transicao(estado_partida, p, estado_final))
+                else:
+                    if p[1] == self.__simbolo_inicial:
+                        af.addTransicao(Transicao(estado_partida, p[0], Estado(p[1], 0)))
+                    else:
+                        af.addTransicao(Transicao(estado_partida, p[0], Estado(p[1], 1)))
+
+        af.addEstado(estado_final)
+
+        for t in self.__t:
+            af.addSimbolo(t)
+
+    
+    def novoEstado(self):
+        novo_estado = None
+        for letra in ascii_uppercase:
+            if letra not in self.__producoes:
+                novo_estado = letra
+                break
+
+        return novo_estado
+                
