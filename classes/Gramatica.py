@@ -7,6 +7,8 @@ class Gramatica(Item):
         self.__producoes = {}  # Dicionario de producoes
         self.__texto = None
         self.__simbolo_inicial = None
+        self.__n = set() #  conjunto de variáveis não-terminais
+        self.__t = set() # conjunto de variáveis terminais
 
     # Adiciona uma nova producao ao dicionario
     def adicionaProducao(self, simbolo, producao):
@@ -22,11 +24,8 @@ class Gramatica(Item):
 
     # Gera a estrutura gramatica a partir do texto escrito pelo usuario
     def parse(self, texto):
-        if not texto:
-            print("Texto vazio")
-            return
-        self.__producoes.clear()
-        self.__texto = None
+        #if not texto:
+            #self.__erro = True
         self.__simbolo_inicial = None
         self.__texto = texto.replace(" ", "")
         lista_de_linhas = self.__texto.splitlines()
@@ -35,64 +34,75 @@ class Gramatica(Item):
     # Verifica se a estrutura gramatica esta certa e gera ela
     def estruturaGramatica(self, linhas):
         tem_epsilon = False
+
+        tmp_producoes = {}
+
         for linha in linhas:
             if len(linha) > 0:
                 if not linha.find("->") == -1:
-                    li = linha.split("->") # separa a producao entre o lado esquerdo e direito de ->
+                    li = linha.split("->") # Separa entre o lado esquerdo e direito do "->"
                     if (len(li) == 2):
-                        if (linha.find("'") or len(li[0]) == 1) and li[0].isupper():
+                        if len(li[0]) == 1 and li[0].isupper():
                             chave = li[0]
                             if (linhas.index(linha) == 0):
                                 self.setSimboloInicial(li[0])
-
+                            
                             producoes = []
                             prod = li[1].split("|") # separa as producoes
 
-                            if not li[1].find("&") == -1:
-                                tem_epsilon = True
-
                             for p in prod:
                                 if len(p) == 1:
-                                    if (p.islower() or p == "&"):
-                                        if (p == "&" and linha.index(linha) != 0):
-                                            print("Producao possui epsilon e nao eh inicial")
-                                            return
+                                    if p.islower() or p == "&" or self.is_int(p):
                                         producoes.append(p)
+                                    
+                                        if p != "&":
+                                            self.__t.add(p)
 
+                                        if p == "&":
+                                            if linhas.index(linha) == 0:
+                                                tem_epsilon = True
+                                            else:
+                                                return
+                                    
                                     else:
-                                        print("Possui um simbolo maiusculo isolado a direita da producao")
                                         return
-
-                                elif len(p) == 2:
+                                
+                                if len(p) == 2:
                                     terminal = p[0]
                                     nao_terminal = p[1]
 
-                                    if (not terminal.islower()) or (not nao_terminal.isupper()):
-                                        print("Producao nao segue formato de terminal seguido de nao terminal")
+                                    if (nao_terminal == self.__simbolo_inicial and tem_epsilon):
                                         return
 
-                                    if nao_terminal == self.__simbolo_inicial and tem_epsilon:
-                                        print("Producao nao segue regras do epsilon")
+                                    if (terminal.islower() or self.is_int(terminal)) and nao_terminal.isupper():
+                                        self.__t.add(terminal)
+                                        self.__n.add(nao_terminal)
+                                        producoes.append(p)
+
+                                    else:
                                         return
 
-                                    producoes.append(p)
-
-                                else:
-                                    print("Possui simbolo vazio ou mais que duas letras")
-                                    return
-
-                            self.adicionaProducao(chave, producoes)
-
+                            tmp_producoes[chave] = producoes
 
                         else:
-                            print("Simbolo antes de -> tem mais de uma letra ou nao eh maiuscula")
-                            return
+                            return # Simbolo antes de -> tem mais de uma letra ou nao eh maiuscula
+                    
                     else:
-                        print("Sem simbolo a esquerda ou direita de ->")
-                        return
+                        return # Sem simbolo a esquerda ou direita de ->
+                
                 else:
-                    print("Producao sem simbolo ->")
-                    return
-            else:
-                print("Texto tem linha vazia")
+                    return # Sem simbolo a esquerda ou direita de ->
+        
+        for n in self.__n:
+            if n not in tmp_producoes:
                 return
+
+        self.__producoes = tmp_producoes
+
+
+    def is_int(self, str):
+        try:
+            int(str)
+            return True
+        except ValueError:
+            return False
