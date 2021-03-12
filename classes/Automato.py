@@ -115,3 +115,78 @@ class Automato(Item):
                     return 2
                 transicao.addEstadoChegada(estado2)
             self.addTransicao(transicao)
+
+
+    def conversaoEmGR(self):
+        from .Gramatica import Gramatica
+        gr = Gramatica(self.get_nome() + " (convertido para GR)")
+        
+        nao_terminais = set() # conjunto de simbolos não terminais 
+        terminais = set() # conjunto de simbolos terminais
+
+        tipo = 0 # tipo do estado incial
+
+        producoes = {} # dicionario de producoes
+
+        estado_novo = False # variavel usada para verificar se um estado novo vai ser criado com epsilon
+
+        for estado in self.__estados: # seta estado inicial e seu tipo
+            if estado.getTipo() == 0:
+                gr.setSimboloInicial(estado.getNome())
+
+            elif estado.getTipo() == 3:
+                gr.setSimboloInicial(estado.getNome())
+                tipo = 3
+            
+            nao_terminais.add(estado.getNome())
+
+        gr.setN(nao_terminais)
+
+        tmp = set(nao_terminais)
+        tmp.remove(gr.getSimboloInicial())
+
+        producoes[gr.getSimboloInicial()] = [] 
+        for nt in tmp:  
+            producoes[nt] = []
+        
+        for simbolo in self.__simbolos:
+            terminais.add(simbolo)
+        
+        gr.setT(terminais)
+
+        for transicao in self.__transicoes:
+            estadoPartida = transicao.getEstadoPartida()
+            simbolo = transicao.getSimbolo()
+            estadosChegada = transicao.getEstadosChegada()
+
+            prod = []
+
+            for est in estadosChegada:
+                prod.append(simbolo + est.getNome())
+
+                if est.getTipo() == 2 or est.getTipo() == 3:
+                    prod.append(simbolo)
+                
+                if tipo == 3:
+                    if est.getNome() == gr.getSimboloInicial():
+                        estado_novo = True
+
+            producoes[estadoPartida.getNome()] = producoes[estadoPartida.getNome()] + prod
+        
+        #print(producoes)
+
+        if (not estado_novo) and tipo == 3: # estado inicial aceita vazio mas nao possui nenhuma transicao para si mesmo
+            producoes[gr.getSimboloInicial()] = producoes[gr.getSimboloInicial()] + ['&']
+
+        if estado_novo: # cria estado novo com epsilon
+            novasProducoes = {}
+            gr.setSimboloInicial(gr.getSimboloInicial() + "0")
+            novasProducoes[gr.getSimboloInicial()] = producoes[gr.getSimboloInicial()[0]] + ['&']
+
+            for x, y in producoes.items():
+                novasProducoes[x] = y
+
+            producoes = novasProducoes
+        
+        gr.setProducoes(producoes)
+        #print(gr.getSimboloInicial())

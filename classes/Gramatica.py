@@ -1,5 +1,4 @@
 from .Item import Item, TipoItem
-from .Automato import Automato
 from .Estado import Estado
 from .Transicao import Transicao
 from string import ascii_uppercase
@@ -25,6 +24,24 @@ class Gramatica(Item):
     # Modifica o simbolo inicial da gramatica regular
     def setSimboloInicial(self, simbolo):
         self.__simbolo_inicial = simbolo
+
+    def getSimboloInicial(self):
+        return self.__simbolo_inicial
+
+    def getT(self):
+        return self.__t
+    
+    def getN(self):
+        return self.__n
+    
+    def setT(self, t):
+        self.__t = t
+    
+    def setN(self, n):
+        self.__n = n
+
+    def setProducoes(self, prod):
+        self.__producoes = prod
 
     # Gera a estrutura gramatica a partir do texto escrito pelo usuario
     def parse(self, texto):
@@ -135,6 +152,7 @@ class Gramatica(Item):
             return False
 
     def conversaoEmAFND(self):
+        from .Automato import Automato
         tmp_producoes = self.__producoes
         simbolo_inicial = self.__simbolo_inicial
 
