@@ -36,6 +36,18 @@
           <input type="submit" name="editar-gramatica" value="Confirmar" class="btn" />
           <a href="/" class="lk">Página Inicial</a>
         </form>
+        {% elif tipo == "ER" %}
+        <form method="post">
+          Nome da Expressão: <input type="text" name="nome-expressao" value="{{ nomeExpressao }}" required />
+          <br />
+          <br />
+          Edição da Expressão
+          <br />
+          <textarea name="texto-expressao">{{ textoExpressao }}</textarea>
+          <br />
+          <input type="submit" name="editar-expressao" value="Confirmar" class="btn" />
+          <a href="/" class="lk">Página Inicial</a>
+        </form>
         {% endif %}
       </div>
     </section>
