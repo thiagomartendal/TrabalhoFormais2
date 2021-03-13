@@ -123,6 +123,10 @@ section #painel-centro #fazer-gramatica {
   display: none;
 }
 
+section #painel-centro #fazer-expressao {
+  display: none;
+}
+
 section #painel-centro .forms-inicio {
   margin: auto;
   width: 700px;

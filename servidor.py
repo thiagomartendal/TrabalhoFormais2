@@ -13,6 +13,8 @@ def main():
         criarAutomato()
     elif request.form.get('criar-gramatica') == "Confirmar":
         criarGramatica()
+    elif request.form.get('criar-expressao') == "Confirmar":
+        criarExpressao()
     return render_template('index.html')
 
 @app.route("/editar", methods=['GET', 'POST'])
@@ -25,6 +27,11 @@ def edicaoAutomato():
         editarGramatica()
         arr = retornarTextoGramatica()
         return render_template('editar.html', tipo="GR", nomeGramatica=arr[0], textoGramatica=arr[1], posicao=arr[2])
+    elif request.args.get('tipo') == "ER":
+        editarExpressao()
+        arr = retornarTextoExpressao()
+        print(arr)
+        return render_template('editar.html', tipo="ER", nomeExpressao=arr[0], textoExpressao=arr[1], posicao=arr[2])
     return render_template('editar.html')
 
 @app.route("/exibir", methods=['GET', 'POST'])
@@ -36,6 +43,11 @@ def exibir():
         arr = retornarTextoGramatica()
         txt = "<br />".join(arr[1].split("\n"))
         return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GR")
+    elif request.args.get('tipo') == "ER":
+        arr = retornarTextoExpressao()
+        txt = "<br />".join(arr[1].split("\n"))
+        return render_template('exibir.html', nomeExpressao=arr[0], textoExpressao=txt, tipo="ER")
+    
     return render_template('exibir.html')
 
 @app.route("/salvar", methods=['GET', 'POST'])

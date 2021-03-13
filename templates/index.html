@@ -38,7 +38,7 @@
         <nav>
           <input type="button" value="Autômato Finito" class="btn" onclick="novoAF()" />
           <input type="button" value="Gramática Regular" class="btn" onclick="novaGR()" />
-          <input type="button" value="Expressão Regular" class="btn" />
+          <input type="button" value="Expressao Regular" class="btn" onclick="novaER()" />
         </nav>
         <div id="fazer-automato" class="forms-inicio">
           <form method="post">
@@ -62,6 +62,18 @@
             <textarea name="texto-gramatica"></textarea>
             <br />
             <input type="submit" name="criar-gramatica" value="Confirmar" class="btn" />
+          </form>
+        </div>
+        <div id="fazer-expressao" class="forms-inicio">
+          <form method="post">
+            Nome da Expressão: <input type="text" name="nome-expressao" required />
+            <br />
+            <br />
+            Edição da Expressão
+            <br />
+            <textarea name="texto-expressao"></textarea>
+            <br />
+            <input type="submit" name="criar-expressao" value="Confirmar" class="btn" />
           </form>
         </div>
       </div>

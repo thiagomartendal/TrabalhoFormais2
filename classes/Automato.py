@@ -1,3 +1,5 @@
+  
+from collections import defaultdict
 from .Estado import Estado
 from .Transicao import Transicao
 from .Item import Item, TipoItem
@@ -12,13 +14,16 @@ class Automato(Item):
 
     # Adiciona simbolo ao alfabeto
     def addSimbolo(self, simbolo):
-        self.__simbolos.append(simbolo)
+        if simbolo not in self.__simbolos:
+            self.__simbolos.append(simbolo)
+            self.__simbolos.sort()
 
     # Adiciona uma lista de simbolos
     def setSimbolos(self, simbolos):
         if type(simbolos) is list:
             self.__simbolos.clear()
             self.__simbolos = [s for s in simbolos]
+            self.__simbolos.sort()
 
     # Retorna o alfabeto do automato
     def getSimbolos(self):
@@ -26,7 +31,8 @@ class Automato(Item):
 
     # Adiciona um estado pronto
     def addEstado(self, estado):
-        self.__estados.append(estado)
+        if estado not in self.__estados:
+            self.__estados.append(estado)
 
     # Cria um novo estado a partir de seus atributos, e o adiciona a lista de estados
     def formarEstado(self, nome, tipo):
@@ -52,6 +58,7 @@ class Automato(Item):
 
     # Adiciona uma transição pronta
     def addTransicao(self, transicao):
+        self.addSimbolo(transicao.getSimbolo())
         self.__transicoes.append(transicao)
 
     # Cria uma nova transição com seus parâmetros, e então adiciona a lista de transições
@@ -65,10 +72,19 @@ class Automato(Item):
         if type(transicoes) is list:
             self.__transicoes.clear()
             self.__transicoes = [x for x in transicoes]
+            for x in transicoes:
+                self.addSimbolo(x.getSimbolo())
 
     # Retorna a lista de transições
     def getTransicoes(self):
         return self.__transicoes
+
+    # Verifica se existe estado no autômato
+    def contemEstado(self, estado):
+        for tmp in self.__estados:
+            if estado.getNome() == tmp.getNome():
+                return True
+        return False
 
     # Gera o autômato a partir do texto escrito pelo usuario
     def parse(self, texto):
@@ -116,6 +132,110 @@ class Automato(Item):
                 transicao.addEstadoChegada(estado2)
             self.addTransicao(transicao)
 
+    # Verifica se exite transição por epsilon
+    def __contemEpsilon(self):
+        if "&" in self.__simbolos:
+            return True
+        return False
+
+    # Realiza a determinização do automato
+    def determinizar(self):
+        eFecho = defaultdict(list)
+        for estado in self.__estados:
+            eFecho[estado].append(estado)
+        if self.__contemEpsilon():
+            for estado in self.__estados:
+                eFecho = self.__eFechoRecursivo(eFecho, estado)
+        estadoInicial, estadosFormadores = self.__construirEstado(eFecho, self.__estados[0], True)
+        automato = Automato(self.get_nome())
+        automato = self.__determinizacao(automato, eFecho, estadoInicial, estadosFormadores)
+        return automato
+
+    # Calcula o e-fecho recursivo
+    def __eFechoRecursivo(self, eFecho, estadoAtual):
+        for transicao in self.__transicoes:
+            if (transicao.getEstadoPartida() == estadoAtual) and (transicao.getSimbolo() == "&"):
+                for estado in transicao.getEstadosChegada():
+                    if estado not in eFecho[estadoAtual]:
+                        eFecho[estadoAtual].append(estado)
+                        eFecho = self.__eFechoRecursivo(eFecho, estado)
+        return eFecho
+
+    # Forma novos estados a partir do e-fecho e um estado de referência (estadoMestre)
+    def __construirEstado(self, eFecho, estadoMestre, formatarEstado):
+        nomeEstado = ""
+        tipoEstado = 1
+        estadosFormadores = []
+        for estado in eFecho[estadoMestre]:
+            if estado.getNome() not in nomeEstado:
+                nomeEstado += estado.getNome()+","
+                if estado.getTipo() == 2:
+                    tipoEstado = 2
+                if estado not in estadosFormadores:
+                    estadosFormadores.append(estado)
+        if nomeEstado == self.__estados[0].getNome():
+            tipoEstado = self.__estados[0].getTipo()
+        elif (estadoMestre.getTipo() == 0) or (estadoMestre.getTipo() == 3):
+            tipoEstado = estadoMestre.getTipo()
+        if formatarEstado:
+            if len(nomeEstado) > 1:
+                nomeEstado = self.__formatarNomeEstado(nomeEstado)
+        return Estado(nomeEstado, tipoEstado), estadosFormadores
+
+    # Retorna os nomes dos estados existentes no autômato em uma lista
+    def __estadosAutomato(self):
+        lista = []
+        for estado in self.__estados:
+            lista.append(estado.getNome())
+        return lista
+
+    # Formata o nome de um estado criado de acordo com a ordem dos estados existentes no automato
+    # Se é criado um estado ba, o nome é formatado para ab caso a lista de estado do automato esteja na ordem [a, b]
+    def __formatarNomeEstado(self, nomeEstado):
+        listaEstados = self.__estadosAutomato()
+        vect = nomeEstado.split(",")
+        vect = list(filter(None, vect))
+        for i in range(len(vect)):
+            for j in range(0, len(vect)-i-1):
+                p1 = listaEstados.index(vect[j])
+                p2 = listaEstados.index(vect[j+1])
+                if p1 > p2:
+                    temp = vect[j]
+                    vect[j] = vect[j+1]
+                    vect[j+1] = temp
+        return "".join(vect)
+
+    # Realiza o processo de determinização de forma recursiva, construindo os novos estados
+    def __determinizacao(self, automato, eFecho, estadoAtual, estadosFormadores):
+        automato.addEstado(estadoAtual)
+        for simbolo in self.__simbolos:
+            if simbolo != "&":
+                nomeEstadoChegada = ""
+                tipoEstado = 1
+                novosFormadores = []
+                for estado in estadosFormadores:
+                    for transicao in self.__transicoes:
+                        if (estado == transicao.getEstadoPartida()) and (simbolo == transicao.getSimbolo()):
+                            for estadoChegada in transicao.getEstadosChegada():
+                                tmp, formadores = self.__construirEstado(eFecho, estadoChegada, False)
+                                if tmp.getNome() not in nomeEstadoChegada:
+                                    nomeEstadoChegada += tmp.getNome()
+                                    if tmp.getTipo() == 2:
+                                        tipoEstado = 2
+                                for x in formadores:
+                                    if x not in novosFormadores:
+                                        novosFormadores.append(x)
+                if nomeEstadoChegada != "":
+                    nomeEstadoChegada = self.__formatarNomeEstado(nomeEstadoChegada)
+                    if nomeEstadoChegada == automato.getEstados()[0].getNome():
+                        tipoEstado = automato.getEstados()[0].getTipo()
+                    estado = Estado(nomeEstadoChegada, tipoEstado)
+                    transicao = Transicao(estadoAtual, simbolo, [estado])
+                    automato.addTransicao(transicao)
+                    if automato.contemEstado(estado) == False:
+                        automato = self.__determinizacao(automato, eFecho, estado, novosFormadores)
+        return automato
+
 
     def conversaoEmGR(self):
         from .Gramatica import Gramatica
@@ -140,6 +260,7 @@ class Automato(Item):
             
             nao_terminais.add(estado.getNome())
 
+        #print(tipo)
         gr.setN(nao_terminais)
 
         tmp = set(nao_terminais)
@@ -181,7 +302,7 @@ class Automato(Item):
         if estado_novo: # cria estado novo com epsilon
             novasProducoes = {}
             gr.setSimboloInicial(gr.getSimboloInicial() + "0")
-            novasProducoes[gr.getSimboloInicial()] = producoes[gr.getSimboloInicial()[0]] + ['&']
+            novasProducoes[gr.getSimboloInicial()] = producoes[gr.getSimboloInicial()[:-1]] + ['&']
 
             for x, y in producoes.items():
                 novasProducoes[x] = y
@@ -189,4 +310,6 @@ class Automato(Item):
             producoes = novasProducoes
         
         gr.setProducoes(producoes)
-        #print(gr.getSimboloInicial())
+        #print(gr.getProducoes())
+
+        return gr
