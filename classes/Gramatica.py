@@ -1,5 +1,4 @@
 from .Item import Item, TipoItem
-from .Automato import Automato
 from .Estado import Estado
 from .Transicao import Transicao
 from string import ascii_uppercase
@@ -26,6 +25,24 @@ class Gramatica(Item):
     def setSimboloInicial(self, simbolo):
         self.__simbolo_inicial = simbolo
 
+    def getSimboloInicial(self):
+        return self.__simbolo_inicial
+
+    def getT(self):
+        return self.__t
+    
+    def getN(self):
+        return self.__n
+    
+    def setT(self, t):
+        self.__t = t
+    
+    def setN(self, n):
+        self.__n = n
+
+    def setProducoes(self, prod):
+        self.__producoes = prod
+
     # Gera a estrutura gramatica a partir do texto escrito pelo usuario
     def parse(self, texto):
         #if not texto:
@@ -49,17 +66,17 @@ class Gramatica(Item):
                 if not linha.find("->") == -1:
                     li = linha.split("->") # Separa entre o lado esquerdo e direito do "->"
                     if (len(li) == 2):
-                        if (len(li[0]) == 1 or (len(li[0]) == 2 and li[0][1] == "0")) and li[0].isupper():
+                        if li[0].isupper():
                             chave = li[0]
                             if (chave == chave_anterior):
                                 return # chaves iguais
                             chave_anterior = chave
 
                             if (linhas.index(linha) == 0):
-                                self.setSimboloInicial(li[0])
+                                self.setSimboloInicial(chave)
 
-                            if (linhas.index(linha) == 1) and len(self.__simbolo_inicial) == 2 and self.__simbolo_inicial[0] != chave:
-                                return # S0 tem que ter S na proxima linha
+                            if (linhas.index(linha) == 1) and self.__simbolo_inicial[-1:] == '0' and self.__simbolo_inicial[:-1] != chave:
+                                return # S' tem que ter S na proxima linha
                             
                             producoes = []
                             prod = li[1].split("|") # separa as producoes
@@ -67,9 +84,9 @@ class Gramatica(Item):
                             if (linhas.index(linha) == 0):
                                 primeira_producao = prod
                             
-                            if (linhas.index(linha) == 1 and self.__tem_epsilon and len(self.__simbolo_inicial) == 2):
+                            if (linhas.index(linha) == 1 and self.__tem_epsilon and self.__simbolo_inicial[-1:] == '0'):
                                 if primeira_producao[:-1] != prod:
-                                    return # S0 e S nao sao iguais
+                                    return # S' e S nao sao iguais
 
                             for p in prod:
                                 if len(p) == 1:
@@ -88,14 +105,14 @@ class Gramatica(Item):
                                     else:
                                         return
                                 
-                                if len(p) == 2:
+                                if len(p) >= 2:
                                     terminal = p[0]
-                                    nao_terminal = p[1]
+                                    nao_terminal = p[1:]
 
                                     if (nao_terminal == self.__simbolo_inicial and self.__tem_epsilon):
                                         return
 
-                                    if (len(self.__simbolo_inicial) == 2) and nao_terminal == self.__simbolo_inicial[0]:
+                                    if self.__simbolo_inicial[-1:] == '0' and nao_terminal == self.__simbolo_inicial[:-1]:
                                         volta_inicio = True
 
                                     if (terminal.islower() or self.is_int(terminal)) and nao_terminal.isupper():
@@ -109,7 +126,7 @@ class Gramatica(Item):
                             tmp_producoes[chave] = producoes
 
                         else:
-                            return # Simbolo antes de -> tem mais de uma letra ou nao eh maiuscula
+                            return # Simbolo nao eh maiuscula
                     
                     else:
                         return # Sem simbolo a esquerda ou direita de ->
@@ -117,7 +134,7 @@ class Gramatica(Item):
                 else:
                     return # Sem simbolo a esquerda ou direita de ->
         
-        if (not volta_inicio) and len(self.__simbolo_inicial) == 2:
+        if (not volta_inicio) and self.__simbolo_inicial[-1:] == '0':
             return
 
         for n in self.__n:
@@ -135,6 +152,7 @@ class Gramatica(Item):
             return False
 
     def conversaoEmAFND(self):
+        from .Automato import Automato
         tmp_producoes = self.__producoes
         simbolo_inicial = self.__simbolo_inicial
 
@@ -147,7 +165,12 @@ class Gramatica(Item):
 
         estado_final = Estado(self.novoEstado(), 2)
 
-        for estado, lista in tmp_producoes.items():
+        listat = []
+        for t in self.__t:
+            listat.append(t)
+        listat.sort()
+
+        for estado in tmp_producoes.keys():
             estado_partida = None
             if estado == simbolo_inicial:
                 if self.__tem_epsilon:
@@ -159,28 +182,29 @@ class Gramatica(Item):
             
             af.addEstado(estado_partida)
 
-            for t in self.__t:
-                transicao = Transicao(estado_partida, t, None)
+        af.addEstado(estado_final)
+
+        for estado, lista in tmp_producoes.items():
+            estado_partida = af.procurarEstado(estado)
+
+            for t in listat:
+                transicao = Transicao(estado_partida, t, [])
                 for p in lista:
                     if p == "&":
                         continue
                     if len(p) == 1 and p == t:
                         transicao.addEstadoChegada(estado_final)
                     elif len(p) == 2 and p[0] == t:
-                        if p[1] == simbolo_inicial:
-                            if self.__tem_epsilon:
-                                transicao.addEstadoChegada(Estado(p[1], 3))
-                            else:
-                                transicao.addEstadoChegada(Estado(p[1], 0))
-                        else:
-                            transicao.addEstadoChegada(Estado(p[1], 1))
-                af.addTransicao(transicao)
+                        estad = af.procurarEstado(p[1])
+                        transicao.addEstadoChegada(estad)
+                if len(transicao.getEstadosChegada()) != 0:
+                    af.addTransicao(transicao)
+        
 
-
-        af.addEstado(estado_final)
-
-        for t in self.__t:
+        for t in listat:
             af.addSimbolo(t)
+
+        return af
 
     
     def novoEstado(self):
