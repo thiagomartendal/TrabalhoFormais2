@@ -312,3 +312,236 @@ class Automato(Item):
         #print(gr.getProducoes())
 
         return gr
+
+
+    def minimizar(self):
+
+        automato = Automato('')
+        automato.setEstados(list(self.getEstados()))
+        automato.setSimbolos(list(self.getSimbolos()))
+        automato.setTransicoes(list(self.getTransicoes()))
+
+        estados_inacessiveis = automato.estadosInacessiveis()
+        estados_mortos = automato.estadosMortos()
+
+        for estado in estados_inacessiveis + estados_mortos:
+            automato.removerEstadoETransicoes(estado)
+
+
+        conjuntos_por_iteracao = automato.equivalencia()
+
+        novoAutomato = Automato(self.get_nome() + "minimizado")
+        novoAutomato.setSimbolos(list(self.getSimbolos()))
+
+        lista_conjuntos_finais = conjuntos_por_iteracao[-1]
+        estados_aceitacao = []
+        for conjunto in lista_conjuntos_finais:
+            lista_estados = list(conjunto)
+
+            nome = ""
+            inicial = False
+            final = False
+            for estado in lista_estados:
+                nome += estado.getNome()
+                if estado.getTipo() == 0:
+                    inicial = True
+                elif estado.getTipo() == 2:
+                    final = True
+                elif estado.getTipo() == 3:
+                    inicial = True
+                    final = True
+            
+            if len(nome) > 1:
+                nome = "".join(set(nome))
+                nome_sorted = sorted(nome)
+                nome = "".join(nome_sorted)
+
+            if inicial == True and final == True:
+                novoAutomato.addEstado(Estado(nome, 3))
+            elif inicial == True and final == False:
+                novoAutomato.addEstado(Estado(nome, 0))
+            elif inicial == False and final == True:
+                novoAutomato.addEstado(Estado(nome, 2))
+            else:
+                novoAutomato.addEstado(Estado(nome, 1))
+
+        for conjunto in lista_conjuntos_finais:
+            lista_estados = list(conjunto)
+
+            for simbolo in automato.getSimbolos():
+                nomeOrigem = ""
+                nomeDestino = ""
+                for estado in lista_estados:
+                    nomeOrigem += estado.getNome()
+                    nomeDestino = automato.encontrarConjunto(estado, lista_conjuntos_finais, simbolo)
+                
+                if len(nomeOrigem) > 1:
+                    nomeOrigem = "".join(set(nomeOrigem))
+                    nomeOrigem_sorted = sorted(nomeOrigem)
+                    nomeOrigem = "".join(nomeOrigem_sorted)
+
+                if len(nomeDestino) > 1:
+                    nomeDestino = "".join(set(nomeDestino))
+                    nomeDestino_sorted = sorted(nomeDestino)
+                    nomeDestino = "".join(nomeDestino_sorted)
+
+                if len(nomeDestino) > 0:
+                    estadoPartida = novoAutomato.procurarEstado(nomeOrigem)
+                    estadoChegada = novoAutomato.procurarEstado(nomeDestino)
+
+                    novoAutomato.addTransicao(Transicao(estadoPartida, simbolo, [estadoChegada]))
+
+        return novoAutomato
+
+    def encontrarConjunto(self, estado, lista_conjuntos, simbolo):
+        estado_chegada = self.getEstadoChegadaDeEstadoPartida(estado, simbolo)
+        nome = ""
+        for conjunto in lista_conjuntos:
+            lista_estados = list(conjunto)
+            if estado_chegada in lista_estados:
+                for estado in lista_estados:
+                    nome += estado.getNome()
+        
+        return nome
+
+
+    def estadosInacessiveis(self):
+        estados_alcancados = set()
+        estados_alcancados.add(self.getEstadoInicial())
+        estados_a_visitar = set(estados_alcancados)
+
+        while len(estados_a_visitar) > 0:
+            estados_encontrados = set()
+            for estado in estados_a_visitar:
+                estados_encontrados = estados_encontrados.union(self.getEstadosChegadaDeEstadoPartida(estado))
+
+            estados_a_visitar = estados_encontrados - estados_alcancados
+            estados_alcancados = estados_alcancados.union(estados_encontrados)
+
+        tmpEstados = set(self.__estados) - estados_alcancados
+        return list(tmpEstados)
+    
+    def estadosMortos(self):
+        vivos_atuais = set(self.getEstadosFinais())
+        vivos_anteriores = set()
+
+        while vivos_atuais != vivos_anteriores:
+            vivos_anteriores = set(vivos_atuais)
+            estados_encontrados = set()
+            for estado in (set(self.__estados) - vivos_atuais):
+
+                estados = self.getEstadosChegadaDeEstadoPartida(estado)
+
+                for est in estados:
+                    if est in vivos_anteriores:
+                        estados_encontrados.add(estado)
+                        break
+
+            vivos_atuais = vivos_anteriores.union(estados_encontrados)
+
+        tmpEstados = set(self.__estados) - vivos_atuais
+        return list(tmpEstados)
+
+    def equivalencia(self):
+        estado_morto = self.criaEstadoMorto()
+        conjuntos_por_iteracao = []
+        conjuntos_por_iteracao.append([set(self.__estados) - self.getEstadosFinais(), self.getEstadosFinais()])
+
+        i = 0
+        while i == 0 or len(conjuntos_por_iteracao[i]) != len(conjuntos_por_iteracao[i-1]):
+            i += 1
+            conjuntos_por_iteracao.append([])
+            for conjunto_estados in conjuntos_por_iteracao[i-1]:
+                lista_estados = list(conjunto_estados)
+                ja_agrupados = []
+                for j in range(len(lista_estados)):
+                    estado_um = lista_estados[j]
+                    if estado_um not in ja_agrupados:
+                        ja_agrupados.append(estado_um)
+                        equivalentes = [estado_um]
+                        for k in range(j+1, len(lista_estados)):
+                            estado_dois = lista_estados[k]
+                            if estado_dois not in ja_agrupados and self.estadosEquivalentes(estado_um, estado_dois, conjuntos_por_iteracao[i-1], estado_morto):
+                                equivalentes.append(estado_dois)
+                                ja_agrupados.append(estado_dois)
+                        conjuntos_por_iteracao[i].append(equivalentes)
+
+        return conjuntos_por_iteracao
+
+    def estadosEquivalentes(self, estado_um, estado_dois, lista_conjuntos, estado_morto):
+        for simbolo in self.__simbolos:
+            estado_destino_um = self.getEstadoDestino(estado_um, simbolo, estado_morto)
+            estado_destino_dois = self.getEstadoDestino(estado_dois, simbolo, estado_morto)
+            for conjunto in lista_conjuntos:
+                if estado_destino_um in conjunto and estado_destino_dois not in conjunto:
+                    return False
+                elif estado_destino_um not in conjunto and estado_destino_dois in conjunto:
+                    return False
+
+        return True
+
+    def getEstadoDestino(self, estadoPartida, simbolo, morto):
+        estadoDestino = []
+        for transicao in self.__transicoes:
+            if transicao.getEstadoPartida() == estadoPartida and transicao.getSimbolo() == simbolo:
+                nome = transicao.getEstadosChegada()[0].getNome()
+                estadoDestino = self.procurarEstado(nome)
+                break
+
+        if estadoDestino == []:
+            return morto
+        else:
+            return estadoDestino
+    
+    def criaEstadoMorto(self):
+        from string import ascii_uppercase
+        novo_estado = None
+        letras = []
+        for estado in self.__estados:
+            letras.append(estado.getNome())
+
+        for letra in ascii_uppercase:
+            if letra not in letras:
+                novo_estado = letra
+                break
+
+        return Estado(novo_estado, 2)
+
+    def getEstadoInicial(self):
+        for estado in self.__estados:
+            if estado.getTipo() == 0 or estado.getTipo() == 3:
+                return estado
+        return None
+    
+    def getEstadosFinais(self):
+        finais = []
+        for estado in self.__estados:
+            if estado.getTipo() == 2 or estado.getTipo() == 3:
+                finais.append(estado)
+        return set(finais)
+        
+    def getEstadosChegadaDeEstadoPartida(self, estado):
+        estados = set()
+        for transicao in self.__transicoes:
+            if transicao.getEstadoPartida() == estado:
+                nome = transicao.getEstadosChegada()[0].getNome()
+                estados.add(self.procurarEstado(nome))
+        return estados
+
+    def getEstadoChegadaDeEstadoPartida(self, estadoPartida, simbolo):
+        estado = None
+        for transicao in self.__transicoes:
+            if transicao.getEstadoPartida() == estadoPartida and transicao.getSimbolo() == simbolo:
+                nome = transicao.getEstadosChegada()[0].getNome()
+                estado = self.procurarEstado(nome)
+                break
+
+        return estado
+
+    def removerEstadoETransicoes(self, estado):
+        tmpTransicoes = list(self.__transicoes)
+        for transicao in self.__transicoes:
+            if transicao.getEstadoPartida() == estado:
+                tmpTransicoes.remove(transicao)
+        self.__transicoes = tmpTransicoes
+        self.__estados.remove(estado)
