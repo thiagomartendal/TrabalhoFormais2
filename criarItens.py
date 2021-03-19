@@ -4,6 +4,7 @@ from classes.Estado import Estado
 from classes.Automato import Automato
 from classes.Transicao import Transicao
 from classes.Gramatica import Gramatica
+from classes.Expressao import Expressao
 from classes.ListaDeItens import ListaDeItens
 
 listaItens = ListaDeItens()
@@ -31,6 +32,18 @@ def criarGramatica():
             gramatica = Gramatica(nome)
             gramatica.parse(texto)
             listaItens.adicionaItem(gramatica)
+
+def criarExpressao():
+    if request.method == 'POST':
+        if request.form.get('criar-expressao') == "Confirmar":
+            global listaItens
+            defaultN = ""
+            defaultT = ""
+            nome = request.form.get('nome-expressao', defaultN)
+            texto = request.form.get('texto-expressao', defaultT)
+            expressao = Expressao(nome)
+            expressao.parse(texto)
+            listaItens.adicionaItem(expressao)
 
 def editarAutomato():
     if request.method == 'POST':
@@ -115,6 +128,36 @@ def retornarTextoGramatica():
         textoGramatica = txt
     return [nomeGramatica, textoGramatica, pos]
 
+def editarExpressao():
+    if request.method == 'POST':
+        if request.form.get('editar-expressao') == "Confirmar":
+            global listaItens
+            defaultN = ""
+            defaultT = ""
+            defaultI = ""
+            nome = request.form.get('nome-expressao', defaultN)
+            texto = request.form.get('texto-expressao', defaultT)
+            pos = request.args.get('pos', defaultI)
+            expressao = listaItens.getItem(int(pos))
+            expressao.set_nome(nome)
+            expressao.parse(texto)
+            listaItens.getLista()[int(pos)] = expressao
+
+def retornarTextoExpressao():
+    global listaItens
+    default = ""
+    pos = request.args.get('pos', default)
+    nomeExpressao = ""
+    textoExpressao = ""
+    if pos != "":
+        expressao = listaItens.getItem(int(pos))
+        txt = ""
+        if expressao.getValido():
+            txt = expressao.getTexto()
+        nomeExpressao = expressao.get_nome()
+        textoExpressao = txt
+    return [nomeExpressao, textoExpressao, pos]
+
 def retornarAutomato():
     global listaItens
     defaultI = ""
@@ -142,3 +185,6 @@ def retornarAutomato():
         transicoes.append([partida, transicao.getSimbolo(), chegada])
     print(dic)
     return [automato.get_nome(), automato.getSimbolos(), transicoes, dic]
+
+
+
