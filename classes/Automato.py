@@ -42,6 +42,12 @@ class Automato(Item):
     # Retorna os estados
     def getEstados(self):
         return self.__estados
+    
+    # Retorna o estado inicial
+    def getEstadoInicial(self):
+        for estado in self.__estados:
+            if(estado.get_tipo() == 0 or estado.get_tipo() == 3):
+                return estado
 
     # Retorna um estado do automato pelo nome
     def procurarEstado(self, nomeEstado):
@@ -69,6 +75,18 @@ class Automato(Item):
     # Retorna a lista de transições
     def getTransicoes(self):
         return self.__transicoes
+
+    # Retorna uma transição especifica
+    def getTransicao(self, estado, simbolo):
+        for i in self.__transicoes:
+            if(i.__estadoPartida == estado and i.__simbolo == simbolo):
+                return i
+
+    # Retorna uma transição especifica a partir do nome do estado e do símbolo
+    def getTransicaoNome(self, nome_estado, simbolo):
+        for i in self.__transicoes:
+            if(i.__estadoPartida.__nome == nome_estado and i.__simbolo == simbolo):
+                return i
 
     # Gera o autômato a partir do texto escrito pelo usuario
     def parse(self, texto):
@@ -115,3 +133,117 @@ class Automato(Item):
                     return 2
                 transicao.addEstadoChegada(estado2)
             self.addTransicao(transicao)
+
+    # Testa se uma palavra é aceita pelo automato
+    def reconhecimento(self, word):
+        palavra = list(str(word))
+        estado = self.getEstadoInicial()
+        print(palavra)
+        self.verificaPalavra(palavra, estado)
+
+    # Verifica se a palavra é reconhecida pelo automato por meio de recursão
+    def verificaPalavra(self, word, estado):
+        palavra = word
+        if(palavra == [] or palavra == "&"):
+            if(estado.getTipo() == 3 or estado.getTipo() == 2):
+                print("reconhece")
+            else:
+                print("não reconhece")
+        elif(palavra != []): 
+            print(palavra[0])
+            proxiTransicao = self.getTransicao(estado, palavra[0])
+            proximo = proxiTransicao.getEstadosChegada()
+            print(proximo)
+            if(proximo != None):
+                palavra.remove(palavra[0])
+                if(len(proximo) > 1):
+                    for i in proximo:
+                        self.verificaPalavra(palavra, i)
+                else:
+                    self.verificaPalavra(palavra, proximo[0])
+
+    # Retorna a união entre dois automatos    
+    def uniao(self, af):
+        selfInitial = self.getEstadoInicial()
+        afInitial = af.getEstadoInicial()
+        initial = self.getEstadoInicial().getNome() + af.getEstadoInicial().getNome()
+        estado_inicial = Estado(initial, 0)
+        for i in self.getEstados():
+            if(i.getTipo() == 3):
+                i.setTipo(2)
+            elif(i.getTipo() == 0):
+                i.setTipo(1)
+        
+        for k in af.getEstados():
+            if(k.getTipo() == 3):
+                k.setTipo(2)
+            elif(k.getTipo() == 0):
+                k.setTipo(1)
+
+
+        estados = self.getEstados() + af.getEstados()
+        estados.append(estado_inicial)
+        transicoes = self.getTransicoes() + af.getTransicoes()
+        transicao1 = Transicao(estado_inicial, "&", [selfInitial])
+        transicao2 = Transicao(estado_inicial, "&", [afInitial])
+        transicoes.append(transicao1)
+        transicoes.append(transicao2)
+        alfabeto = self.getSimbolos()
+        for x in af.getSimbolos():
+            if(x not in alfabeto):
+                alfabeto.append(x)
+        alfabeto = alfabeto + ["&"]
+        
+        nome = "União {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome()) 
+        unionAF = Automato(nome)
+        unionAF.setEstados(estados)
+        unionAF.setTransicoes(transicoes)
+        unionAF.setSimbolos(alfabeto)
+
+        return unionAF
+
+    # Retorna a interseção entre dois automatos
+    def intersecao(self, af):
+        # estado_inicial = self.getEstadoInicial().__nome + af.getEstadoInicial().__nome
+        simbolos = self.getSimbolos()
+        simbolos_af = af.getSimbolos()
+        for x in simbolos_af:
+            if(x not in simbolos):
+                simbolos.append(x)
+        estados = []
+        for i in self.getEstados():
+            for j in af.getEstados():
+                if((i.getTipo() == 0 and j.getTipo() == 0) or (i.getTipo() == 0 and j.getTipo() == 3) or (i.getTipo() == 3 and j.getTipo() == 0)):
+                    nome_estado = i.getNome() + j.getNome()
+                    estado_inicial = Estado(nome_estado, 2)
+                    estados.append(estado_inicial)
+                elif((i.getTipo() == 2 and j.getTipo() == 2) or (i.getTipo() == 2 and j.getTipo() == 3) or (i.getTipo() == 3 and j.getTipo() == 2)):
+                    nome_estado = i.getNome() + j.getNome()
+                    estado_final = Estado(nome_estado, 2)
+                    estados.append(estado_final)
+                elif(i.getTipo() == 3 and j.getTipo() == 3):
+                    nome_estado = i.getNome() + j.getNome()
+                    estado_final = Estado(nome_estado, 3)
+                    estados.append(estado_final)
+                else:
+                    nome_estado = i.getNome() + j.getNome()
+                    estado = Estado(nome_estado, 1)
+                    estados.append(estado)
+        
+        transicoes = []
+        for i in simbolos:
+            for j in estados:
+                temp = self.getTransicaoNome(j.getNome()[0], i)
+                temp2 = af.getTransicaoNome(j.getNome()[1], i)
+                # sucessor = temp.getEstadosChegada().getNome() + temp2.getEstadosChegada().getNome()
+                sucessor = temp.getEstadosChegada() + temp2.getEstadosChegada()
+                trans = Transicao(j, i, sucessor)
+                transicoes.append(trans)
+
+        nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome()) 
+        intersecAF = Automato(nome)
+        intersecAF.setEstados(estados)
+        intersecAF.setTransicoes(transicoes)
+        intersecAF.setSimbolos(simbolos)
+        
+        return intersecAF

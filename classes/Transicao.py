@@ -1,7 +1,7 @@
 class Transicao:
 
     # estadoPartida recebe o estado de saída por algum símbolo de transição
-    # simbolo tecebe o caractere que realiza a transição entre estados
+    # simbolo recebe o caractere que realiza a transição entre estados
     # estadosChegada é uma lista que recebe um estado caso o autômato seja determinístico
     # caso o autômato seja não-determinístico estadosChegada deve conter mais de um estado
 
