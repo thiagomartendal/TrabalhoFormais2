@@ -78,6 +78,18 @@ class Automato(Item):
     def getTransicoes(self):
         return self.__transicoes
 
+    # Retorna uma transição especifica
+    def getTransicao(self, estado, simbolo):
+        for i in self.__transicoes:
+            if(i.getEstadoPartida() == estado and i.getSimbolo() == simbolo):
+                return i
+
+    # Retorna uma transição especifica a partir do nome do estado e do símbolo
+    def getTransicaoNome(self, nome_estado, simbolo):
+        for i in self.__transicoes:
+            if(i.getEstadoPartida().getNome() == nome_estado and i.getSimbolo() == simbolo):
+                return i
+    
     # Verifica se existe estado no autômato
     def contemEstado(self, estado):
         for tmp in self.__estados:
