@@ -153,7 +153,7 @@ def retornarTextoExpressao():
         expressao = listaItens.getItem(int(pos))
         txt = ""
         if expressao.getValido():
-            txt = expressao.getTexto()
+            txt = expressao.to_string()
         nomeExpressao = expressao.get_nome()
         textoExpressao = txt
     return [nomeExpressao, textoExpressao, pos]
