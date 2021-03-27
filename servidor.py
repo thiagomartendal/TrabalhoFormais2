@@ -2,19 +2,24 @@ from flask import Flask, render_template, request, redirect
 from classes.Item import TipoItem
 from classes.ListaDeItens import ListaDeItens
 from criarItens import *
-import pickle
 
 app = Flask(__name__)
 listaItens = ListaDeItens()
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
-    if request.form.get('criar-automato') == "Confirmar":
-        criarAutomato()
-    elif request.form.get('criar-gramatica') == "Confirmar":
-        criarGramatica()
-    elif request.form.get('criar-expressao') == "Confirmar":
-        criarExpressao()
+    if request.method == "POST":
+        if request.form.get('criar-automato') == "Confirmar":
+            criarAutomato()
+        elif request.form.get('criar-gramatica') == "Confirmar":
+            criarGramatica()
+        elif request.form.get('criar-expressao') == "Confirmar":
+            criarExpressao()
+        elif request.form.get('abrir') == "Abrir":
+            abrir()
+        elif request.form.get('avaliar') == "Avaliar":
+            arr = avaliar()
+            return render_template('index.html', palavra=arr[0], res=arr[1])
     return render_template('index.html')
 
 @app.route("/editar", methods=['GET', 'POST'])
@@ -47,16 +52,50 @@ def exibir():
         arr = retornarTextoExpressao()
         txt = "<br />".join(arr[1].split("\n"))
         return render_template('exibir.html', nomeExpressao=arr[0], textoExpressao=txt, tipo="ER")
-    
     return render_template('exibir.html')
 
-@app.route("/salvar", methods=['GET', 'POST'])
-def salvar():
-    default = ""
-    pos = request.args.get('pos', default)
+@app.route('/download', methods=['GET', 'POST'])
+def download():
+    defaultI = ""
+    pos = request.args.get('pos', defaultI)
     item = listaItens.getItem(int(pos))
-    with open(item.get_nome()+'.pkl', 'wb') as output:
-        pickle.dump(item, output, pickle.HIGHEST_PROTOCOL)
+    nome = item.get_nome()+".txt"
+    salvar(item)
+    return redirect("/")
+
+@app.route('/det')
+def determinizar():
+    defaultI = ""
+    pos = request.args.get('pos', defaultI)
+    item = listaItens.getItem(int(pos))
+    automatoDeterminizado = item.determinizar()
+    listaItens.getLista()[int(pos)] = automatoDeterminizado
+    return redirect("/")
+
+@app.route('/converter')
+def converterItens():
+    defaultI = ""
+    defaultT = ""
+    pos = request.args.get('pos', defaultI)
+    tipo = request.args.get('tipoConversao', defaultT)
+    item = listaItens.getItem(int(pos))
+    novoItem = None
+    if tipo == "AFGR":
+        novoItem = item.conversaoEmGR()
+    elif tipo == "GRAF":
+        novoItem = item.conversaoEmAFND()
+    elif tipo == "ERAF":
+        novoItem = item.obter_automato_finito_equivalente()
+    listaItens.getLista()[int(pos)] = novoItem
+    return redirect("/")
+
+@app.route('/avaliar')
+def avaliarSentenca():
+    defaultI = ""
+    defaultT = ""
+    pos = request.args.get('pos', defaultI)
+    tipo = request.args.get('tipo', defaultT)
+    print(pos, tipo)
     return redirect("/")
 
 @app.context_processor

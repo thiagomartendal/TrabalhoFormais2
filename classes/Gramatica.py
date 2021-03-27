@@ -10,6 +10,7 @@ class Gramatica(Item):
         self.__producoes = {}  # Dicionario de producoes
         self.__texto = None
         self.__simbolo_inicial = None
+        self.__tem_epsilon = False
         self.__n = set() #  conjunto de variáveis não-terminais
         self.__t = set() # conjunto de variáveis terminais
 
@@ -30,13 +31,13 @@ class Gramatica(Item):
 
     def getT(self):
         return self.__t
-    
+
     def getN(self):
         return self.__n
-    
+
     def setT(self, t):
         self.__t = t
-    
+
     def setN(self, n):
         self.__n = n
 
@@ -77,13 +78,13 @@ class Gramatica(Item):
 
                             if (linhas.index(linha) == 1) and self.__simbolo_inicial[-1:] == '0' and self.__simbolo_inicial[:-1] != chave:
                                 return # S' tem que ter S na proxima linha
-                            
+
                             producoes = []
                             prod = li[1].split("|") # separa as producoes
 
                             if (linhas.index(linha) == 0):
                                 primeira_producao = prod
-                            
+
                             if (linhas.index(linha) == 1 and self.__tem_epsilon and self.__simbolo_inicial[-1:] == '0'):
                                 if primeira_producao[:-1] != prod:
                                     return # S' e S nao sao iguais
@@ -92,7 +93,7 @@ class Gramatica(Item):
                                 if len(p) == 1:
                                     if p.islower() or p == "&" or self.is_int(p):
                                         producoes.append(p)
-                                    
+
                                         if p != "&":
                                             self.__t.add(p)
 
@@ -101,10 +102,10 @@ class Gramatica(Item):
                                                 self.__tem_epsilon = True
                                             else:
                                                 return # possui epsilon e nao eh inicial
-                                    
+
                                     else:
                                         return
-                                
+
                                 if len(p) >= 2:
                                     terminal = p[0]
                                     nao_terminal = p[1:]
@@ -127,13 +128,13 @@ class Gramatica(Item):
 
                         else:
                             return # Simbolo nao eh maiuscula
-                    
+
                     else:
                         return # Sem simbolo a esquerda ou direita de ->
-                
+
                 else:
                     return # Sem simbolo a esquerda ou direita de ->
-        
+
         if (not volta_inicio) and self.__simbolo_inicial[-1:] == '0':
             return
 
@@ -179,7 +180,7 @@ class Gramatica(Item):
                     estado_partida = Estado(estado, 0)
             else:
                 estado_partida = Estado(estado, 1)
-            
+
             af.addEstado(estado_partida)
 
         af.addEstado(estado_final)
@@ -199,14 +200,14 @@ class Gramatica(Item):
                         transicao.addEstadoChegada(estad)
                 if len(transicao.getEstadosChegada()) != 0:
                     af.addTransicao(transicao)
-        
+
 
         for t in listat:
             af.addSimbolo(t)
 
         return af
 
-    
+
     def novoEstado(self):
         novo_estado = None
         for letra in ascii_uppercase:
@@ -215,4 +216,3 @@ class Gramatica(Item):
                 break
 
         return novo_estado
-                

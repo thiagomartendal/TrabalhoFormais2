@@ -6,6 +6,8 @@ from classes.Transicao import Transicao
 from classes.Gramatica import Gramatica
 from classes.Expressao import Expressao
 from classes.ListaDeItens import ListaDeItens
+from classes.Item import TipoItem
+import os
 
 listaItens = ListaDeItens()
 
@@ -158,6 +160,29 @@ def retornarTextoExpressao():
         textoExpressao = txt
     return [nomeExpressao, textoExpressao, pos]
 
+def procurarTransicoesVazias(automato, transicoes, dic):
+    for estado in automato.getEstados():
+        partida = ""
+        if estado.getTipo() == 0:
+            partida += "->"
+        elif estado.getTipo() == 2:
+            partida += "*"
+        elif estado.getTipo() == 3:
+            partida += "->*"
+        partida += estado.getNome()
+        estadoSemTransicao = False
+        for t in transicoes:
+            if partida == t[0]:
+                estadoSemTransicao = False
+                break
+            else:
+                estadoSemTransicao = True
+        if estadoSemTransicao:
+            for s in automato.getSimbolos():
+                dic[partida].append("")
+                transicoes.append([partida, s, ""])
+    return dic, transicoes
+
 def retornarAutomato():
     global listaItens
     defaultI = ""
@@ -183,8 +208,68 @@ def retornarAutomato():
         chegada += "}"
         dic[partida].append(chegada)
         transicoes.append([partida, transicao.getSimbolo(), chegada])
-    print(dic)
+    dic, transicoes = procurarTransicoesVazias(automato, transicoes, dic)
     return [automato.get_nome(), automato.getSimbolos(), transicoes, dic]
 
+def abrir():
+    if request.method == 'POST':
+        global listaItens
+        arquivo = request.files['arquivo']
+        nomeArquivo = arquivo.filename
+        local = os.path.abspath(nomeArquivo)
+        f = open(local, "r")
+        i = 1
+        tipo = ""
+        conteudo = ""
+        for linha in f:
+            if i == 1:
+                tipo = linha
+                tipo = tipo.rstrip("\n")
+            else:
+                conteudo += linha
+            i += 1
+        f.close()
+        nomeArquivo = nomeArquivo.split('.')[0]
+        if tipo == "AF":
+            automato = Automato(nomeArquivo)
+            automato.parse(conteudo)
+            listaItens.adicionaItem(automato)
+        elif tipo == "GR":
+            gramatica = Gramatica(nomeArquivo)
+            gramatica.parse(conteudo)
+            listaItens.adicionaItem(gramatica)
+        elif tipo == "ER":
+            expressao = Expressao(nomeArquivo)
+            expressao.parse(conteudo)
+            listaItens.adicionaItem(expressao)
 
+def salvar(item):
+    global listaItens
+    conteudo = ""
+    if item.get_tipo() == TipoItem.AF:
+        conteudo += "AF\n"
+        arr = retornarTextoAutomato()
+        conteudo += arr[1]
+    elif item.get_tipo() == TipoItem.GR:
+        conteudo += "GR\n"
+        arr = retornarTextoGramatica()
+        conteudo += arr[1]
+    elif item.get_tipo() == TipoItem.ER:
+        conteudo += "ER\n"
+        arr = retornarTextoExpressao()
+        conteudo += arr[1]
+    f = open(item.get_nome()+".txt", "w")
+    f.write(conteudo)
+    f.close()
 
+def avaliar():
+    global listaItens
+    if request.method == 'POST':
+        defaultI = ""
+        defaultP = ""
+        pos = request.args.get('pos', defaultI)
+        palavra = request.form.get('sentenca', defaultP)
+        automato = listaItens.getItem(int(pos))
+        reconhece = automato.reconhecimento(palavra)
+        return [palavra, reconhece]
+    return [None, None]

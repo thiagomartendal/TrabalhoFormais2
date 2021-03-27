@@ -89,7 +89,7 @@ class Automato(Item):
         for i in self.__transicoes:
             if(i.getEstadoPartida().getNome() == nome_estado and i.getSimbolo() == simbolo):
                 return i
-    
+
     # Verifica se existe estado no autômato
     def contemEstado(self, estado):
         for tmp in self.__estados:
@@ -247,12 +247,11 @@ class Automato(Item):
                         automato = self.__determinizacao(automato, eFecho, estado, novosFormadores)
         return automato
 
-
     def conversaoEmGR(self):
         from .Gramatica import Gramatica
         gr = Gramatica(self.get_nome() + " (convertido para GR)")
-        
-        nao_terminais = set() # conjunto de simbolos não terminais 
+
+        nao_terminais = set() # conjunto de simbolos não terminais
         terminais = set() # conjunto de simbolos terminais
 
         tipo = 0 # tipo do estado incial
@@ -268,7 +267,7 @@ class Automato(Item):
             elif estado.getTipo() == 3:
                 gr.setSimboloInicial(estado.getNome())
                 tipo = 3
-            
+
             nao_terminais.add(estado.getNome())
 
         #print(tipo)
@@ -277,13 +276,13 @@ class Automato(Item):
         tmp = set(nao_terminais)
         tmp.remove(gr.getSimboloInicial())
 
-        producoes[gr.getSimboloInicial()] = [] 
-        for nt in tmp:  
+        producoes[gr.getSimboloInicial()] = []
+        for nt in tmp:
             producoes[nt] = []
-        
+
         for simbolo in self.__simbolos:
             terminais.add(simbolo)
-        
+
         gr.setT(terminais)
 
         for transicao in self.__transicoes:
@@ -298,13 +297,13 @@ class Automato(Item):
 
                 if est.getTipo() == 2 or est.getTipo() == 3:
                     prod.append(simbolo)
-                
+
                 if tipo == 3:
                     if est.getNome() == gr.getSimboloInicial():
                         estado_novo = True
 
             producoes[estadoPartida.getNome()] = producoes[estadoPartida.getNome()] + prod
-        
+
         #print(producoes)
 
         if (not estado_novo) and tipo == 3: # estado inicial aceita vazio mas nao possui nenhuma transicao para si mesmo
@@ -319,7 +318,7 @@ class Automato(Item):
                 novasProducoes[x] = y
 
             producoes = novasProducoes
-        
+
         gr.setProducoes(producoes)
         #print(gr.getProducoes())
 
@@ -362,7 +361,7 @@ class Automato(Item):
                 elif estado.getTipo() == 3:
                     inicial = True
                     final = True
-            
+
             if len(nome) > 1:
                 nome = "".join(set(nome))
                 nome_sorted = sorted(nome)
@@ -386,7 +385,7 @@ class Automato(Item):
                 for estado in lista_estados:
                     nomeOrigem += estado.getNome()
                     nomeDestino = automato.encontrarConjunto(estado, lista_conjuntos_finais, simbolo)
-                
+
                 if len(nomeOrigem) > 1:
                     nomeOrigem = "".join(set(nomeOrigem))
                     nomeOrigem_sorted = sorted(nomeOrigem)
@@ -413,7 +412,7 @@ class Automato(Item):
             if estado_chegada in lista_estados:
                 for estado in lista_estados:
                     nome += estado.getNome()
-        
+
         return nome
 
 
@@ -432,7 +431,7 @@ class Automato(Item):
 
         tmpEstados = set(self.__estados) - estados_alcancados
         return list(tmpEstados)
-    
+
     def estadosMortos(self):
         vivos_atuais = set(self.getEstadosFinais())
         vivos_anteriores = set()
@@ -504,7 +503,7 @@ class Automato(Item):
             return morto
         else:
             return estadoDestino
-    
+
     def criaEstadoMorto(self):
         from string import ascii_uppercase
         novo_estado = None
@@ -524,14 +523,14 @@ class Automato(Item):
             if estado.getTipo() == 0 or estado.getTipo() == 3:
                 return estado
         return None
-    
+
     def getEstadosFinais(self):
         finais = []
         for estado in self.__estados:
             if estado.getTipo() == 2 or estado.getTipo() == 3:
                 finais.append(estado)
         return set(finais)
-        
+
     def getEstadosChegadaDeEstadoPartida(self, estado):
         estados = set()
         for transicao in self.__transicoes:
@@ -563,30 +562,35 @@ class Automato(Item):
         palavra = list(str(word))
         estado = self.getEstadoInicial()
         print(palavra)
-        self.verificaPalavra(palavra, estado)
+        return self.verificaPalavra(palavra, estado)
 
     # Verifica se a palavra é reconhecida pelo automato por meio de recursão
     def verificaPalavra(self, word, estado):
+        # print(estado.getNome())
+        aceita = False
         palavra = word
         if(palavra == [] or palavra == "&"):
             if(estado.getTipo() == 3 or estado.getTipo() == 2):
-                print("reconhece")
+                # print("reconhece")
+                return True
             else:
-                print("não reconhece")
-        elif(palavra != []): 
-            print(palavra[0])
+                # print("não reconhece")
+                return False
+        elif(palavra != []):
+            # print(palavra[0])
             proxiTransicao = self.getTransicao(estado, palavra[0])
             proximo = proxiTransicao.getEstadosChegada()
-            print(proximo)
+            # print(proximo)
             if(proximo != None):
                 palavra.remove(palavra[0])
                 if(len(proximo) > 1):
                     for i in proximo:
-                        self.verificaPalavra(palavra, i)
+                        aceita = self.verificaPalavra(palavra, i)
                 else:
-                    self.verificaPalavra(palavra, proximo[0])
+                    aceita = self.verificaPalavra(palavra, proximo[0])
+        return aceita
 
-    # Retorna a união entre dois automatos    
+    # Retorna a união entre dois automatos
     def uniao(self, af):
         selfInitial = self.getEstadoInicial()
         afInitial = af.getEstadoInicial()
@@ -597,7 +601,7 @@ class Automato(Item):
                 i.setTipo(2)
             elif(i.getTipo() == 0):
                 i.setTipo(1)
-        
+
         for k in af.getEstados():
             if(k.getTipo() == 3):
                 k.setTipo(2)
@@ -617,8 +621,8 @@ class Automato(Item):
             if(x not in alfabeto):
                 alfabeto.append(x)
         alfabeto = alfabeto + ["&"]
-        
-        nome = "União {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome()) 
+
+        nome = "União {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome())
         unionAF = Automato(nome)
         unionAF.setEstados(estados)
         unionAF.setTransicoes(transicoes)
@@ -652,7 +656,7 @@ class Automato(Item):
                     nome_estado = i.getNome() + j.getNome()
                     estado = Estado(nome_estado, 1)
                     estados.append(estado)
-        
+
         transicoes = []
         for i in simbolos:
             for j in estados:
@@ -663,10 +667,10 @@ class Automato(Item):
                 trans = Transicao(j, i, sucessor)
                 transicoes.append(trans)
 
-        nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome()) 
+        nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome())
         intersecAF = Automato(nome)
         intersecAF.setEstados(estados)
         intersecAF.setTransicoes(transicoes)
         intersecAF.setSimbolos(simbolos)
-        
+
         return intersecAF

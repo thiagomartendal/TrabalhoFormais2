@@ -16,7 +16,7 @@ class Expressao(Item):
     def __init__(self, nome):
         super(Expressao, self).__init__(TipoItem.ER, nome)
         self.__valido = False
-    
+
     def getValido(self):
         return self.__valido
 
@@ -38,7 +38,7 @@ class Expressao(Item):
             return True
         except:
             return False # Expressão possui operadores redundantes que resultam em recursão sem fim.
-                                         
+
     def gerar_nodo(self, expressao):
         subexpressao = self.remover_parenteses_externos(expressao)
 
@@ -108,25 +108,25 @@ class Expressao(Item):
             if char in chars_validos:
                 if i > 1:
                     if char_anterior in "|.(" and char in "|.*?)":
-                        return False 
+                        return False
                     elif char_anterior in "*?" and char in "*?":
-                        return False 
+                        return False
 
                 if char == "(":
                     nivel_parentesis += 1
                 elif char == ")":
                     nivel_parentesis -= 1
                     if nivel_parentesis < 0:
-                        return False 
+                        return False
                 elif char == ".":
                     i_real -= 1
             else:
-                return False 
+                return False
             char_anterior = char
             i_real += 1
 
         if nivel_parentesis > 0:
-            return False 
+            return False
         return True
 
     def preparar_expressao(self, expressao):
@@ -182,12 +182,12 @@ class Expressao(Item):
         obter_estado = {}  # mapeia composicoes para seu estado
 
         composicao_da_raiz = self.__arvore.composicao_da_raiz()
-        
+
         estado_inicial = Estado(self.novo_nome(lista_de_nomes), 0)
         for simbolo in composicao_da_raiz:
             if simbolo == "$":
                 estado_inicial.setTipo(3)
-        
+
         automato = Automato(self.get_nome() + " (convertido para AF)")
         automato.addEstado(estado_inicial)
 
@@ -239,6 +239,6 @@ class Expressao(Item):
             if letra not in lista:
                 novo_nome = letra
                 break
-        
+
         lista.append(novo_nome)
         return novo_nome

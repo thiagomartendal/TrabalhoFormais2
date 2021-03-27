@@ -13,6 +13,11 @@
     </header>
     <section>
       <div id="painel-esquerda">
+        <strong>Abrir arquivo:</strong>
+        <form method="post" enctype="multipart/form-data">
+          <input type="file" name="arquivo" required />
+          <input type="submit" name="abrir" value="Abrir" class="btn" />
+        </form>
         <div id="caixas">
           <div id="lista-itens" class="caixa">
             <div class="titulo">
@@ -20,15 +25,30 @@
             </div>
             <div class="conteudo">
               {% if itens|length > 0 %}
-              {% for l in itens %}
-              <a href="/editar?pos={{ l.2 }}&tipo={{ l.1 }}">{{ l.0 }}: {{ l.1 }}</a>
-              <br />
-              <a href="/salvar?pos={{ l.2 }}&tipo={{ l.1 }}" class="btn">Salvar</a>
-              <a href="/exibir?pos={{ l.2 }}&tipo={{ l.1 }}" class="btn">Exibir</a>
-              <hr />
-              {% endfor %}
+                {% for l in itens %}
+                  <div class="menu-lateral">
+                    <a href="/editar?pos={{ l.2 }}&tipo={{ l.1 }}" class="link-editar">{{ l.0 }}: {{ l.1 }}</a>
+                    <!-- class="btn" -->
+                    <div class="conteudo-menu">
+                      <a href="/exibir?pos={{ l.2 }}&tipo={{ l.1 }}">Exibir</a>
+                      <a href="/download?pos={{ l.2 }}">Salvar</a>
+                      {% if l.1 == "AF" %}
+                        <a href="/min?pos={{ l.2 }}">Minimizar</a>
+                        <a href="/det?pos={{ l.2 }}">Determinizar</a>
+                        <!-- /avaliacao?pos={{ l.2 }} -->
+                        <a href="#reconhecimento-sentenca" onclick="posItem({{ l.2 }})">Avaliar Sentença</a>
+                      {% endif %}
+                      {% if l.1 == "AF" %}
+                        <a href="/converter?pos={{ l.2 }}&tipoConversao=AFGR">Converter em GR</a>
+                      {% elif l.1 == "GR" or l.1 == "ER" %}
+                        <a href="/converter?pos={{ l.2 }}&tipoConversao={{ l.1 }}AF">Converter em AF</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <br />
+                {% endfor %}
               {% else %}
-              Lista vazia.
+                Lista vazia.
               {% endif %}
             </div>
           </div>
@@ -39,6 +59,8 @@
           <input type="button" value="Autômato Finito" class="btn" onclick="novoAF()" />
           <input type="button" value="Gramática Regular" class="btn" onclick="novaGR()" />
           <input type="button" value="Expressao Regular" class="btn" onclick="novaER()" />
+          <input type="button" value="União de Autômatos" class="btn" onclick="uniaoAF()" />
+          <input type="button" value="Intersecção de Autômatos" class="btn" onclick="interseccaoAF()" />
         </nav>
         <div id="fazer-automato" class="forms-inicio">
           <form method="post">
@@ -47,7 +69,7 @@
             <br />
             Edição do Autômato
             <br />
-            <textarea name="texto-automato"></textarea>
+            <textarea name="texto-automato" required></textarea>
             <br />
             <input type="submit" name="criar-automato" value="Confirmar" class="btn" />
           </form>
@@ -59,7 +81,7 @@
             <br />
             Edição da Gramática
             <br />
-            <textarea name="texto-gramatica"></textarea>
+            <textarea name="texto-gramatica" required></textarea>
             <br />
             <input type="submit" name="criar-gramatica" value="Confirmar" class="btn" />
           </form>
@@ -71,10 +93,35 @@
             <br />
             Edição da Expressão
             <br />
-            <textarea name="texto-expressao"></textarea>
+            <textarea name="texto-expressao" required></textarea>
             <br />
             <input type="submit" name="criar-expressao" value="Confirmar" class="btn" />
           </form>
+        </div>
+        <div id="reconhecimento-sentenca" class="msgbox">
+          <div class="conteudo">
+            <form method="post" id="form-sentenca" onsubmit="">
+              Sentença: <input type="text" name="sentenca" required />
+              <input type="submit" name="avaliar" value="Avaliar" class="btn" />
+              <a href="#" title="Fechar" class="fechar-msgbox" onclick="limpaURL()">x</a>
+            </form>
+            <div id="resultado">
+              <!-- O resultado da avaliação é exibido aqui. -->
+              {% if res is defined %}
+                {% if res %}
+                  <div class="verde">
+                    {{ palavra }}
+                  </div>
+                  A palavra é reconhecida pelo autômato.
+                {% else %}
+                  <div class="vermelho">
+                    {{ palavra }}
+                  </div>
+                  A palavra não é reconhecida pelo autômato.
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
     </section>

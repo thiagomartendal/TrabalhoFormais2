@@ -35,3 +35,22 @@ function novaER() {
     x.style.display = "none"
   }
 }
+
+function posItem(pos) {
+  window.history.replaceState(null, null, "?pos="+pos)
+}
+
+function limpaURL() {
+  window.history.pushState({}, document.title, "/")
+}
+
+// function parametroURL(sParam) {
+//   var sPageURL = window.location.search.substring(1);
+//   var sURLVariables = sPageURL.split('&');
+//   for (var i = 0; i < sURLVariables.length; i++) {
+//     var sParameterName = sURLVariables[i].split('=');
+//     if (sParameterName[0] == sParam) {
+//       return sParameterName[1];
+//     }
+//   }
+// }​
