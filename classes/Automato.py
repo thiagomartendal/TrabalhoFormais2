@@ -559,36 +559,39 @@ class Automato(Item):
 
     # Testa se uma palavra é aceita pelo automato
     def reconhecimento(self, word):
+        aceita = False
         palavra = list(str(word))
         estado = self.getEstadoInicial()
-        print(palavra)
-        return self.verificaPalavra(palavra, estado)
+        if(word == "&"):
+            if(estado.getTipo() == 3):
+                aceita = True
+        else:
+            aceita = self.verificaPalavra(palavra, estado)
+        return aceita
 
-    # Verifica se a palavra é reconhecida pelo automato por meio de recursão
-    def verificaPalavra(self, word, estado):
-        # print(estado.getNome())
-        aceita = False
-        palavra = word
-        if(palavra == [] or palavra == "&"):
-            if(estado.getTipo() == 3 or estado.getTipo() == 2):
+    # Verifica se a palavra é reconhecida pelo automato
+    def verificaPalavra(self, palavra, estado):
+        sucessor = []
+        palavra_computada = []
+        palavra_restante = []
+        for i in range(len(palavra)):
+            palavra_computada.append(palavra[i])
+            palavra_restante = palavra[i:]
+            transicao = self.getTransicao(estado, palavra[i])
+            if(transicao != None):
+                sucessor = transicao.getEstadosChegada()
+            if(len(sucessor) > 1):
+                for j in sucessor:
+                    self.verificaPalavra(palavra_restante, j)       
+            else:
+                estado = sucessor[0]
+
+        if(estado.getTipo() == 3 or estado.getTipo() == 2):
                 # print("reconhece")
                 return True
             else:
                 # print("não reconhece")
                 return False
-        elif(palavra != []):
-            # print(palavra[0])
-            proxiTransicao = self.getTransicao(estado, palavra[0])
-            proximo = proxiTransicao.getEstadosChegada()
-            # print(proximo)
-            if(proximo != None):
-                palavra.remove(palavra[0])
-                if(len(proximo) > 1):
-                    for i in proximo:
-                        aceita = self.verificaPalavra(palavra, i)
-                else:
-                    aceita = self.verificaPalavra(palavra, proximo[0])
-        return aceita
 
     # Retorna a união entre dois automatos
     def uniao(self, af):
