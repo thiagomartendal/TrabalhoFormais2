@@ -70,14 +70,14 @@ class Gramatica(Item):
                         if li[0].isupper():
                             chave = li[0]
                             if (chave == chave_anterior):
-                                return # chaves iguais
+                                return # Não pode possuir simbolos antes de -> iguais
                             chave_anterior = chave
 
                             if (linhas.index(linha) == 0):
                                 self.setSimboloInicial(chave)
 
                             if (linhas.index(linha) == 1) and self.__simbolo_inicial[-1:] == '0' and self.__simbolo_inicial[:-1] != chave:
-                                return # S' tem que ter S na proxima linha
+                                return # Caso simbolo inicial tenha 0 no final, proximo simbolo tem que ser igual ao simbolo inicial menos o 0
 
                             producoes = []
                             prod = li[1].split("|") # separa as producoes
@@ -87,7 +87,7 @@ class Gramatica(Item):
 
                             if (linhas.index(linha) == 1 and self.__tem_epsilon and self.__simbolo_inicial[-1:] == '0'):
                                 if primeira_producao[:-1] != prod:
-                                    return # S' e S nao sao iguais
+                                    return # Quando houver simbolo inicial com 0, a produção da primeira linha tem que ser igual a segunda sem o epsilon
 
                             for p in prod:
                                 if len(p) == 1:
@@ -101,17 +101,17 @@ class Gramatica(Item):
                                             if linhas.index(linha) == 0:
                                                 self.__tem_epsilon = True
                                             else:
-                                                return # possui epsilon e nao eh inicial
+                                                return # Não pode possuir epsilon fora da primeira linha
 
                                     else:
-                                        return
+                                        return # Quando simbolo for unico, não pode possuir simbolo que não é & ou terminal ou numero
 
                                 if len(p) >= 2:
                                     terminal = p[0]
                                     nao_terminal = p[1:]
 
                                     if (nao_terminal == self.__simbolo_inicial and self.__tem_epsilon):
-                                        return
+                                        return # Quando possuir epsilon, não pode haver produção que retorna para simbolo inicial
 
                                     if self.__simbolo_inicial[-1:] == '0' and nao_terminal == self.__simbolo_inicial[:-1]:
                                         volta_inicio = True
@@ -122,25 +122,25 @@ class Gramatica(Item):
                                         producoes.append(p)
 
                                     else:
-                                        return
+                                        return # terminal possui letra maiuscula ou não terminal possui letra minuscula
 
                             tmp_producoes[chave] = producoes
 
                         else:
-                            return # Simbolo nao eh maiuscula
+                            return # Simbolo antes de -> não pode ter letras minusculas
 
                     else:
                         return # Sem simbolo a esquerda ou direita de ->
 
                 else:
-                    return # Sem simbolo a esquerda ou direita de ->
+                    return # Sem simbolo ->
 
         if (not volta_inicio) and self.__simbolo_inicial[-1:] == '0':
             return
 
         for n in self.__n:
             if n not in tmp_producoes:
-                return
+                return # Possui simbolo não terminal que não é chamado em nenhuma produção a direita
 
         self.__producoes = tmp_producoes
 

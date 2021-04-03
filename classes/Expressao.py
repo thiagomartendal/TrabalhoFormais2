@@ -108,25 +108,25 @@ class Expressao(Item):
             if char in chars_validos:
                 if i > 1:
                     if char_anterior in "|.(" and char in "|.*?)":
-                        return False
+                        return False # Simbolo não esperado em alguma posição
                     elif char_anterior in "*?" and char in "*?":
-                        return False
+                        return False # Simbolo não esperado em alguma posição
 
                 if char == "(":
                     nivel_parentesis += 1
                 elif char == ")":
                     nivel_parentesis -= 1
                     if nivel_parentesis < 0:
-                        return False
+                        return False  # Parenteses fechado sem correspondente em alguma posição
                 elif char == ".":
                     i_real -= 1
             else:
-                return False
+                return False # Simbolo desconhecido em alguma posição
             char_anterior = char
             i_real += 1
 
         if nivel_parentesis > 0:
-            return False
+            return False # Parenteses aberto sem correspondente em alguma posição
         return True
 
     def preparar_expressao(self, expressao):
