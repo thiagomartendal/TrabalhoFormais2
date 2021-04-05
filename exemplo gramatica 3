@@ -1,0 +1,9 @@
+S0->aB|bD|cE|a|b|&
+S->aB|bD|cE|a|b
+B->aE|bC|b|cE
+C->aB|bF|cE
+D->aS|bE
+E->aE|bE|cE
+F->aC|bE|a
+G->aF|bH|cG
+H->aG|bC|cC|b|c
