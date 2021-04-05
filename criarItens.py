@@ -20,8 +20,12 @@ def criarAutomato():
             nome = request.form.get('nome-automato', defaultN)
             texto = request.form.get('texto-automato', defaultT)
             automato = Automato(nome)
+            erro, linha, textoLinha, msg = automato.reconhecerErros(texto)
+            if erro is False:
+                return (erro, linha, textoLinha, msg, nome, texto)
             automato.parse(texto)
             listaItens.adicionaItem(automato)
+    return (True, 0, "", "", "", "")
 
 def criarGramatica():
     if request.method == 'POST':
@@ -32,8 +36,15 @@ def criarGramatica():
             nome = request.form.get('nome-gramatica', defaultN)
             texto = request.form.get('texto-gramatica', defaultT)
             gramatica = Gramatica(nome)
-            gramatica.parse(texto)
+            erro1, linha1, textoLinha1, msg1 = gramatica.reconhecerErros(texto)
+            if erro1 is False:
+                return (erro1, linha1, textoLinha1, msg1, nome, texto)
+            erro2, linha2, textoLinha2, msg2 = gramatica.parse(texto)
+            if erro2 is False:
+                print("Houve um erro.")
+                return (erro2, linha2, textoLinha2, msg2, nome, texto)
             listaItens.adicionaItem(gramatica)
+    return (True, 0, "", "", "", "")
 
 def criarExpressao():
     if request.method == 'POST':
@@ -44,8 +55,11 @@ def criarExpressao():
             nome = request.form.get('nome-expressao', defaultN)
             texto = request.form.get('texto-expressao', defaultT)
             expressao = Expressao(nome)
-            expressao.parse(texto)
+            erro, msg = expressao.parse(texto)
+            if erro is False:
+                return (erro, msg, nome, texto)
             listaItens.adicionaItem(expressao)
+    return (True, "", "", "")
 
 def editarAutomato():
     if request.method == 'POST':
@@ -160,56 +174,38 @@ def retornarTextoExpressao():
         textoExpressao = txt
     return [nomeExpressao, textoExpressao, pos]
 
-def procurarTransicoesVazias(automato, transicoes, dic):
-    for estado in automato.getEstados():
-        partida = ""
-        if estado.getTipo() == 0:
-            partida += "->"
-        elif estado.getTipo() == 2:
-            partida += "*"
-        elif estado.getTipo() == 3:
-            partida += "->*"
-        partida += estado.getNome()
-        estadoSemTransicao = False
-        for t in transicoes:
-            if partida == t[0]:
-                estadoSemTransicao = False
-                break
-            else:
-                estadoSemTransicao = True
-        if estadoSemTransicao:
-            for s in automato.getSimbolos():
-                dic[partida].append("")
-                transicoes.append([partida, s, ""])
-    return dic, transicoes
-
 def retornarAutomato():
     global listaItens
     defaultI = ""
     pos = request.args.get('pos', defaultI)
     automato = listaItens.getItem(int(pos))
-    transicoes = []
     dic = defaultdict(list)
-    for transicao in automato.getTransicoes():
+    for e in automato.getEstados():
         partida = ""
-        if transicao.getEstadoPartida().getTipo() == 0:
+        if e.getTipo() == 0:
             partida += "->"
-        elif transicao.getEstadoPartida().getTipo() == 2:
+        elif e.getTipo() == 2:
             partida += "*"
-        elif transicao.getEstadoPartida().getTipo() == 3:
+        elif e.getTipo() == 3:
             partida += "->*"
-        partida += transicao.getEstadoPartida().getNome()
-        chegada = "{"
-        for i in range(len(transicao.getEstadosChegada())):
-            estado = transicao.getEstadosChegada()[i]
-            chegada += estado.getNome()
-            if i < len(transicao.getEstadosChegada())-1:
-                chegada += ","
-        chegada += "}"
-        dic[partida].append(chegada)
-        transicoes.append([partida, transicao.getSimbolo(), chegada])
-    dic, transicoes = procurarTransicoesVazias(automato, transicoes, dic)
-    return [automato.get_nome(), automato.getSimbolos(), transicoes, dic]
+        partida += e.getNome()
+        # print(partida)
+        for s in automato.getSimbolos():
+            if automato.contemTransicao(e, s) is True:
+                transicao = automato.getTransicao(e, s)
+                chegada = "{"
+                for i in range(len(transicao.getEstadosChegada())):
+                    estado = transicao.getEstadosChegada()[i]
+                    chegada += estado.getNome()
+                    if i < len(transicao.getEstadosChegada())-1:
+                        chegada += ","
+                chegada += "}"
+                if len(dic[partida]) <= len(automato.getSimbolos()):
+                    dic[partida].append(chegada)
+            else:
+                if len(dic[partida]) <= len(automato.getSimbolos()):
+                    dic[partida].append("")
+    return [automato.get_nome(), automato.getSimbolos(), dic]
 
 def abrir():
     if request.method == 'POST':
@@ -270,6 +266,25 @@ def avaliar():
         pos = request.args.get('pos', defaultI)
         palavra = request.form.get('sentenca', defaultP)
         automato = listaItens.getItem(int(pos))
+        if automato.deterministico():
+            automato = automato.determinizar()
         reconhece = automato.reconhecimento(palavra)
         return [palavra, reconhece]
     return [None, None]
+
+def uniaoInterseccaoAutomato(tipo):
+    global listaItens
+    if request.method == 'POST':
+        defaultP1 = ""
+        defaultP2 = ""
+        posAutomato1 = request.form.get('automato1', defaultP1)
+        posAutomato2 = request.form.get('automato2', defaultP2)
+        automato1 = listaItens.getItem(int(posAutomato1))
+        automato2 = listaItens.getItem(int(posAutomato2))
+        automato3 = None
+        if tipo == 0:
+            automato3 = automato1.uniao(automato2)
+        elif tipo == 1:
+            automato3 = automato1.intersecao(automato2)
+        listaItens.getLista()[int(posAutomato1)] = automato3
+        listaItens.removeItem(int(posAutomato2))

@@ -167,16 +167,47 @@ section #painel-centro nav .btn:hover {
   background-color: #000;
 }
 
+section #painel-centro .erro {
+  border: 5px solid #800000;
+  border-radius: 10px;
+  background-color: #FF6347;
+  font-weight: bolder;
+  font-size: 20px;
+  padding: 5px;
+  margin-top: 5px;
+}
+
 section #painel-centro #fazer-automato {
   display: none;
+  text-align: center;
 }
 
 section #painel-centro #fazer-gramatica {
   display: none;
+  text-align: center;
 }
 
 section #painel-centro #fazer-expressao {
   display: none;
+  text-align: center;
+}
+
+section #painel-centro #uniao-automatos {
+  display: none;
+  text-align: center;
+}
+
+section #painel-centro #interseccao-automatos {
+  display: none;
+  text-align: center;
+}
+
+section #painel-centro .uniao-interseccao select {
+  font-size: 20px;
+}
+
+section #painel-centro .uniao-interseccao .simbolo {
+  font-size: 30px;
 }
 
 section #painel-centro .forms-inicio {

@@ -14,42 +14,42 @@
       <div id="exibir">
         <br />
         {% if tipo == "AF" %}
-        <h1>{{ nomeAutomato }}</h1>
-        <table border="1">
-          <tr>
-            <th>
-            </th>
-            {% for s in simbolosAutomato %}
-            <th>
-              {{ s }}
-            </th>
+          <h1>{{ nomeAutomato|safe }}</h1>
+          <table border="1">
+            <tr>
+              <th>
+              </th>
+              {% for s in simbolosAutomato %}
+                <th>
+                  {{ s }}
+                </th>
+              {% endfor %}
+            </tr>
+            {% for k, v in dicionario.items() %}
+                <tr>
+                  <td>
+                    {{ k }}
+                  </td>
+                  {% for l in v %}
+                    <td>
+                      {{ l }}
+                    </td>
+                  {% endfor %}
+                </tr>
             {% endfor %}
-          </tr>
-          {% for k, v in dicionario.items() %}
-          <tr>
-            <td>
-              {{ k }}
-            </td>
-            {% for l in v %}
-            <td>
-              {{ l }}
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </table>
+          </table>
         {% elif tipo == "GR" %}
-        <h1>{{ nomeGramatica }}</h1>
-        <br />
-        <div class="texto-gramatica">
-        {{ textoGramatica|safe }}
-        </div>
+          <h1>{{ nomeGramatica|safe }}</h1>
+          <br />
+          <div class="texto-gramatica">
+          {{ textoGramatica|safe }}
+          </div>
         {% elif tipo == "ER" %}
-        <h1>{{ nomeExpressao }}</h1>
-        <br />
-        <div class="texto-expressao">
-        {{ textoExpressao|safe }}
-        </div>
+          <h1>{{ nomeExpressao|safe }}</h1>
+          <br />
+          <div class="texto-expressao">
+          {{ textoExpressao|safe }}
+          </div>
         {% endif %}
         <br />
         <a href="/" class="lk">Página Inicial</a>

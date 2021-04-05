@@ -63,39 +63,165 @@
           <input type="button" value="Intersecção de Autômatos" class="btn" onclick="interseccaoAF()" />
         </nav>
         <div id="fazer-automato" class="forms-inicio">
+          <h1>Novo Autômato</h1>
+          <br />
           <form method="post">
-            Nome do Autômato: <input type="text" name="nome-automato" required />
+            Nome do Autômato: <input id="nome-automato" type="text" name="nome-automato" required />
             <br />
             <br />
             Edição do Autômato
             <br />
-            <textarea name="texto-automato" required></textarea>
+            <!-- onkeypress="return numeroLinha('texto-automato')" -->
+            <textarea id="texto-automato" name="texto-automato" required></textarea>
             <br />
             <input type="submit" name="criar-automato" value="Confirmar" class="btn" />
           </form>
+          {% if tipoErro == "AF" %}
+            <script type="text/javascript">
+              let x = document.getElementById("fazer-automato")
+              let y = document.getElementById("nome-automato")
+              let z = document.getElementById("texto-automato")
+              x.style.display = "block"
+              y.value = `{{ nomeAutomato|safe }}`
+              z.value = `{{ textoAutomato|safe }}`
+            </script>
+            <div class="erro">
+              Erro: {{ msg }}
+              <br />
+              {% if linha > 0 %}
+                Linha {{ linha }}: {{ textoLinha }}
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
         <div id="fazer-gramatica" class="forms-inicio">
+          <h1>Nova Gramática</h1>
+          <br />
           <form method="post">
-            Nome da Gramática: <input type="text" name="nome-gramatica" required />
+            Nome da Gramática: <input id="nome-gramatica" type="text" name="nome-gramatica" required />
             <br />
             <br />
             Edição da Gramática
             <br />
-            <textarea name="texto-gramatica" required></textarea>
+            <textarea id="texto-gramatica" name="texto-gramatica" required></textarea>
             <br />
             <input type="submit" name="criar-gramatica" value="Confirmar" class="btn" />
           </form>
+          {% if tipoErro == "GR" %}
+            <script type="text/javascript">
+              let x = document.getElementById("fazer-gramatica")
+              let y = document.getElementById("nome-gramatica")
+              let z = document.getElementById("texto-gramatica")
+              x.style.display = "block"
+              y.value = `{{ nomeGramatica|safe }}`
+              z.value = `{{ textoGramatica|safe }}`
+            </script>
+            <div class="erro">
+              Erro: {{ msg }}
+              <br />
+              {% if linha > 0 %}
+                Linha {{ linha }}: {{ textoLinha }}
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
         <div id="fazer-expressao" class="forms-inicio">
+          <h1>Nova Expressão Regular</h1>
+          <br />
           <form method="post">
-            Nome da Expressão: <input type="text" name="nome-expressao" required />
+            Nome da Expressão: <input id="nome-expressao" type="text" name="nome-expressao" required />
             <br />
             <br />
             Edição da Expressão
             <br />
-            <textarea name="texto-expressao" required></textarea>
+            <textarea id="texto-expressao" name="texto-expressao" required></textarea>
             <br />
             <input type="submit" name="criar-expressao" value="Confirmar" class="btn" />
+          </form>
+          {% if tipoErro == "ER" %}
+            <script type="text/javascript">
+              let x = document.getElementById("fazer-expressao")
+              let y = document.getElementById("nome-expressao")
+              let z = document.getElementById("texto-expressao")
+              x.style.display = "block"
+              y.value = `{{ nomeExpressao|safe }}`
+              z.value = `{{ textoExpressao|safe }}`
+            </script>
+            <div class="erro">
+              Erro: {{ msg }}
+            </div>
+          {% endif %}
+        </div>
+        <div id="uniao-automatos" class="uniao-interseccao forms-inicio">
+          <h1>União de Autômatos</h1>
+          <br />
+          <form method="post">
+            <select name="automato1" required>
+              <option value="">
+              </option>
+              {% if itens|length > 0 %}
+                {% for l in itens %}
+                  {% if l.1 == "AF" %}
+                  <option value="{{ l.2 }}">
+                    {{ l.0 }}
+                  </option>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </select>
+            <span class="simbolo">∪</span>
+            <select name="automato2" required>
+              <option value="">
+              </option>
+              {% if itens|length > 0 %}
+                {% for l in itens %}
+                  {% if l.1 == "AF" %}
+                  <option value="{{ l.2 }}">
+                    {{ l.0 }}
+                  </option>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </select>
+            <br />
+            <br />
+            <input type="submit" name="uniao-automato" value="Confirmar" class="btn" />
+          </form>
+        </div>
+        <div id="interseccao-automatos" class="uniao-interseccao forms-inicio">
+          <h1>Intersecção de Autômatos</h1>
+          <br />
+          <form method="post">
+            <select name="automato1" required>
+              <option value="">
+              </option>
+              {% if itens|length > 0 %}
+                {% for l in itens %}
+                  {% if l.1 == "AF" %}
+                  <option value="{{ l.2 }}">
+                    {{ l.0 }}
+                  </option>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </select>
+            <span class="simbolo">∩</span>
+            <select name="automato2" required>
+              <option value="">
+              </option>
+              {% if itens|length > 0 %}
+                {% for l in itens %}
+                  {% if l.1 == "AF" %}
+                  <option value="{{ l.2 }}">
+                    {{ l.0 }}
+                  </option>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </select>
+            <br />
+            <br />
+            <input type="submit" name="interseccao-automato" value="Confirmar" class="btn" />
           </form>
         </div>
         <div id="reconhecimento-sentenca" class="msgbox">

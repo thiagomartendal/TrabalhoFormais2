@@ -21,7 +21,9 @@ class Expressao(Item):
         return self.__valido
 
     def parse(self, expressao):
-        self.__valido = self.gerar_arvore(expressao)
+        arv = self.gerar_arvore(expressao)
+        self.__valido = arv[0]
+        return arv
 
     def to_string(self):
         return self.__arvore.get_em_ordem()
@@ -29,15 +31,18 @@ class Expressao(Item):
     def gerar_arvore(self, expressao):
         self.__arvore = Arvore()
         expressao = self.preparar_expressao(expressao)
-        if self.verifica_validade(expressao):
+        erro, msg = self.verifica_validade(expressao)
+        if erro:
             self.__arvore.set_nodo_raiz(self.gerar_nodo(expressao))
             self.__arvore.costura_arvore()
             self.__arvore.numera_folhas()
+        else:
+            return (erro, msg)
         try:
             self.verifica_validade(self.to_string())
-            return True
+            return (True, "")
         except:
-            return False # Expressão possui operadores redundantes que resultam em recursão sem fim.
+            return (False, "Expressão possui operadores redundantes que resultam em recursão sem fim.") # Expressão possui operadores redundantes que resultam em recursão sem fim.
 
     def gerar_nodo(self, expressao):
         subexpressao = self.remover_parenteses_externos(expressao)
@@ -98,7 +103,7 @@ class Expressao(Item):
 
     def verifica_validade(self, expressao):
         if not expressao:
-            return False # A expressão não pode ser vazia
+            return (False, "A expressão não pode ser vazia.") # A expressão não pode ser vazia
         chars_validos = string.ascii_lowercase + string.digits + "|.*?()"
         nivel_parentesis = 0
         char_anterior = " "
@@ -108,26 +113,26 @@ class Expressao(Item):
             if char in chars_validos:
                 if i > 1:
                     if char_anterior in "|.(" and char in "|.*?)":
-                        return False # Simbolo não esperado em alguma posição
+                        return (False, "Simbolo não esperado em alguma posição.") # Simbolo não esperado em alguma posição
                     elif char_anterior in "*?" and char in "*?":
-                        return False # Simbolo não esperado em alguma posição
+                        return (False, "Simbolo não esperado em alguma posição.") # Simbolo não esperado em alguma posição
 
                 if char == "(":
                     nivel_parentesis += 1
                 elif char == ")":
                     nivel_parentesis -= 1
                     if nivel_parentesis < 0:
-                        return False  # Parenteses fechado sem correspondente em alguma posição
+                        return (False, "Parenteses fechado sem correspondente em alguma posição.") # Parenteses fechado sem correspondente em alguma posição
                 elif char == ".":
                     i_real -= 1
             else:
-                return False # Simbolo desconhecido em alguma posição
+                return (False, "Simbolo desconhecido em alguma posição.") # Simbolo desconhecido em alguma posição
             char_anterior = char
             i_real += 1
 
         if nivel_parentesis > 0:
-            return False # Parenteses aberto sem correspondente em alguma posição
-        return True
+            return (False, "Parenteses aberto sem correspondente em alguma posição.") # Parenteses aberto sem correspondente em alguma posição
+        return (True, "")
 
     def preparar_expressao(self, expressao):
         # Remove espaços em branco

@@ -26,6 +26,7 @@ class Automato(Item):
 
     # Retorna o alfabeto do automato
     def getSimbolos(self):
+        self.__simbolos.sort()
         return self.__simbolos
 
     # Adiciona um estado pronto
@@ -90,6 +91,26 @@ class Automato(Item):
             if(i.getEstadoPartida().getNome() == nome_estado and i.getSimbolo() == simbolo):
                 return i
 
+    def ordenarTransicoes(self):
+        self.__simbolos.sort()
+        for e in self.__estados:
+            print(e.getNome(), end=" ")
+        print()
+        for i in range(len(self.__transicoes)):
+            if i < (len(self.__transicoes)-1):
+                t1 = self.__transicoes[i]
+                t2 = self.__transicoes[i+1]
+                if self.__simbolos.index(t1.getSimbolo()) > self.__simbolos.index(t2.getSimbolo()):
+                    self.__transicoes[i] = t2
+                    self.__transicoes[i+1] = t1
+        for i in range(len(self.__transicoes)):
+            if i < (len(self.__transicoes)-1):
+                t1 = self.__transicoes[i]
+                t2 = self.__transicoes[i+1]
+                if self.__estados.index(t1.getEstadoPartida()) > self.__estados.index(t2.getEstadoPartida()):
+                    self.__transicoes[i] = t2
+                    self.__transicoes[i+1] = t1
+
     # Verifica se existe estado no autômato
     def contemEstado(self, estado):
         for tmp in self.__estados:
@@ -97,11 +118,88 @@ class Automato(Item):
                 return True
         return False
 
+    def contemTransicao(self, estadoPartida, simbolo):
+        for transicao in self.__transicoes:
+            if (transicao.getEstadoPartida() == estadoPartida) and (transicao.getSimbolo() == simbolo):
+                return True
+        return False
+
+    def deterministico(self):
+        if "&" in self.__simbolos:
+            return False
+        for transicao in self.__transicoes:
+            if len(transicao.getEstadosChegada()) > 1:
+                return False
+        return True
+
+    def reconhecerErros(self, texto):
+        texto = texto.replace(" ", "")
+        if '-' not in texto:
+            return (False, 0, "", "A declaração de estados e transições deve ser separada com uma linha contendo um hífem (-).")
+        else:
+            linhas = texto.splitlines()
+            totalHifens = texto.count('-')
+            if totalHifens > 1:
+                return (False, 0, "", "O hífem deve apenas ser usado para separar a definição de estados e transições, onde é necessário apenas um hífem.")
+            estadosDeclarados = []
+            for i in range(len(linhas)):
+                posHifem = linhas.index('-')
+                if linhas[i] != '-':
+                    linhaAtual = linhas[i]
+                    if i < posHifem:
+                        if ',' not in linhaAtual:
+                            return (False, (i+1), linhaAtual, "Separe nome do estado e o tipo com vírgula.")
+                        else:
+                            estadoTipo = linhaAtual.split(',')
+                            if estadoTipo[0] == '':
+                                return (False, (i+1), linhaAtual, "O nome do estado não foi declarado.")
+                            elif '.' in estadoTipo[0]:
+                                return (False, (i+1), linhaAtual, "O nome do estado não deve conter '.', pois este é usado para separar estados de chegada em transições não-determinísticas.")
+                            else:
+                                estadosDeclarados.append(estadoTipo[0])
+                            if estadoTipo[1] == '':
+                                return (False, (i+1), linhaAtual, "O tipo do estado não foi declarado.")
+                            elif estadoTipo[1] != 'I' and estadoTipo[1] != 'N' and estadoTipo[1] != 'F' and estadoTipo[1] != "IF":
+                                return (False, (i+1), linhaAtual, "O tipo do estado declarado não é correto. Os tipos reconhecidos são: I - Inicial, N - Normal, F - Final, IF - Inicial e Final.")
+                    else:
+                        if ',' not in linhaAtual:
+                            return (False, (i+1), linhaAtual, "Separe nome do estado de partida, o símbolo, e os estados de chegada com vírgula para formar uma transição.")
+                        else:
+                            totalVirgulas = linhaAtual.count(',')
+                            if totalVirgulas < 2:
+                                return (False, (i+1), linhaAtual, "Separe nome do estado de partida, o símbolo, e os estados de chegada com vírgula para formar uma transição.")
+                            elif totalVirgulas > 2:
+                                return (False, (i+1), linhaAtual, "A linha não deve conter mais de 2 vírgulas para efetuar as separações.")
+                            else:
+                                transicao = linhaAtual.split(',')
+                                if transicao[0] == '':
+                                    return (False, (i+1), linhaAtual, "O estado de partida não foi definido na transição da linha "+str(i+1)+".")
+                                if transicao[0] not in estadosDeclarados:
+                                    return (False, (i+1), linhaAtual, "O estado "+transicao[0]+" não foi declarado acima. Declare o estado com "+transicao[0]+",Tipo (I,N,F,IF).")
+                                if transicao[1] == '':
+                                    return (False, (i+1), linhaAtual, "O símbolo de transição não foi definido na transição da linha "+str(i+1)+".")
+                                if '.' in transicao[2]:
+                                    estadosChegada = transicao[2].split('.')
+                                    if transicao[2] == '.':
+                                        return (False, (i+1), linhaAtual, "Os estados de chegada não foram definidos.")
+                                    for e in estadosChegada:
+                                        if e == '':
+                                            return (False, (i+1), linhaAtual, "Um dos estados de chegada não foram definidos. Uma transição não deve terminar com '.' pois este indica a separação dos estados de chegada para um autômato não-determinístico.")
+                                        if e not in estadosDeclarados:
+                                            return (False, (i+1), linhaAtual, "O estado "+e+" não foi declarado acima. Declare o estado com "+e+",Tipo (I,N,F,IF).")
+                                else:
+                                    if transicao[2] == '':
+                                        return (False, (i+1), linhaAtual, "Os estados de chegada não foram definidos na transição da linha "+str(i+1)+".")
+                                    if transicao[2] not in estadosDeclarados:
+                                        return (False, (i+1), linhaAtual, "O estado "+transicao[2]+" não foi declarado acima. Declare o estado com "+transicao[2]+",Tipo (I,N,F,IF).")
+        return (True, 0, "", "")
+
     # Gera o autômato a partir do texto escrito pelo usuario
     def parse(self, texto):
         if not texto:
             print("Texto vazio")
             return
+        texto = texto.replace(" ", "")
         self.__estados.clear()
         self.__simbolos.clear()
         self.__transicoes.clear()
@@ -341,7 +439,7 @@ class Automato(Item):
 
         conjuntos_por_iteracao = automato.equivalencia()
 
-        novoAutomato = Automato(self.get_nome() + "minimizado")
+        novoAutomato = Automato(self.get_nome() + " minimizado")
         novoAutomato.setSimbolos(list(self.getSimbolos()))
 
         lista_conjuntos_finais = conjuntos_por_iteracao[-1]
@@ -582,16 +680,16 @@ class Automato(Item):
                 sucessor = transicao.getEstadosChegada()
             if(len(sucessor) > 1):
                 for j in sucessor:
-                    self.verificaPalavra(palavra_restante, j)       
+                    self.verificaPalavra(palavra_restante, j)
             else:
                 estado = sucessor[0]
 
         if(estado.getTipo() == 3 or estado.getTipo() == 2):
-                # print("reconhece")
-                return True
-            else:
-                # print("não reconhece")
-                return False
+            # print("reconhece")
+            return True
+        else:
+            # print("não reconhece")
+            return False
 
     # Retorna a união entre dois automatos
     def uniao(self, af):
@@ -615,10 +713,10 @@ class Automato(Item):
         estados = self.getEstados() + af.getEstados()
         estados.append(estado_inicial)
         transicoes = self.getTransicoes() + af.getTransicoes()
-        transicao1 = Transicao(estado_inicial, "&", [selfInitial])
-        transicao2 = Transicao(estado_inicial, "&", [afInitial])
-        transicoes.append(transicao1)
-        transicoes.append(transicao2)
+        transicaoInicial = Transicao(estado_inicial, "&", [selfInitial, afInitial])
+        # transicao2 = Transicao(estado_inicial, "&", [afInitial])
+        transicoes.append(transicaoInicial)
+        # transicoes.append(transicao2)
         alfabeto = self.getSimbolos()
         for x in af.getSimbolos():
             if(x not in alfabeto):
@@ -648,13 +746,13 @@ class Automato(Item):
             elif(i.getTipo() == 0):
                 i.setTipo(3)
             estados.append(i)
-        nome = "Negação {af1}".format(af1 = self.get_nome()) 
+        nome = "Negação {af1}".format(af1 = self.get_nome())
         negacaoAF = Automato(nome)
         negacaoAF.setEstados(estados)
         negacaoAF.setTransicoes(transicoes)
         negacaoAF.setSimbolos(simbolos)
         return negacaoAF
-    
+
     # Retorna a interseção entre dois automatos
     def intersecao(self, af):
         negacaoAF1 = self.negacao()
@@ -663,5 +761,5 @@ class Automato(Item):
         intersecAF = uniaoAF1_AF2.negacao()
         nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome())
         intersecAF.set_nome(nome)
-           
+
         return intersecAF

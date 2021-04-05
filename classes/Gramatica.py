@@ -44,6 +44,25 @@ class Gramatica(Item):
     def setProducoes(self, prod):
         self.__producoes = prod
 
+    def reconhecerErros(self, texto):
+        texto = texto.replace(" ", "")
+        linhas = texto.splitlines()
+        cabecasProducao = []
+        for i in range(len(linhas)):
+            if "->" not in linhas[i]:
+                return (False, (i+1), linhas[i], "A cabeça de produção não declara o copo com ->.")
+            cabecaCorpo = linhas[i].split("->")
+            if cabecaCorpo[0] == '':
+                return (False, (i+1), linhas[i], "A cabeça da produção não foi definida.")
+            cabecasProducao.append(cabecaCorpo[0])
+            if cabecaCorpo[1] == '':
+                return (False, (i+1), linhas[i], "O corpo da produção não foi definido.")
+            corpo = cabecaCorpo[1].split("|")
+            for pateCorpo in corpo:
+                if pateCorpo == '':
+                    return (False, (i+1), linhas[i], "O corpo da produção tem uma indefinição a esquerda ou a direita de |.")
+        return (True, 0, "", "")
+
     # Gera a estrutura gramatica a partir do texto escrito pelo usuario
     def parse(self, texto):
         #if not texto:
@@ -51,7 +70,7 @@ class Gramatica(Item):
         self.__simbolo_inicial = None
         self.__texto = texto.replace(" ", "")
         lista_de_linhas = self.__texto.splitlines()
-        self.estruturaGramatica(lista_de_linhas)
+        return self.estruturaGramatica(lista_de_linhas)
 
     # Verifica se a estrutura gramatica esta certa e gera ela
     def estruturaGramatica(self, linhas):
@@ -70,14 +89,15 @@ class Gramatica(Item):
                         if li[0].isupper():
                             chave = li[0]
                             if (chave == chave_anterior):
-                                return # Não pode possuir simbolos antes de -> iguais
+                                return (False, linhas.index(linha)+1, linha, "Não pode possuir simbolos antes de -> iguais.") # Não pode possuir simbolos antes de -> iguais
                             chave_anterior = chave
 
                             if (linhas.index(linha) == 0):
                                 self.setSimboloInicial(chave)
 
                             if (linhas.index(linha) == 1) and self.__simbolo_inicial[-1:] == '0' and self.__simbolo_inicial[:-1] != chave:
-                                return # Caso simbolo inicial tenha 0 no final, proximo simbolo tem que ser igual ao simbolo inicial menos o 0
+                                return (False, (linhas.index(linha)+1), linha, "Caso o símbolo inicial tenha 0 no final, o próximo simbolo tem que ser igual ao símbolo inicial menos o 0.")
+                                # Caso simbolo inicial tenha 0 no final, proximo simbolo tem que ser igual ao simbolo inicial menos o 0
 
                             producoes = []
                             prod = li[1].split("|") # separa as producoes
@@ -87,7 +107,8 @@ class Gramatica(Item):
 
                             if (linhas.index(linha) == 1 and self.__tem_epsilon and self.__simbolo_inicial[-1:] == '0'):
                                 if primeira_producao[:-1] != prod:
-                                    return # Quando houver simbolo inicial com 0, a produção da primeira linha tem que ser igual a segunda sem o epsilon
+                                    return (False, (linhas.index(linha)+1), linha, "Quando houver simbolo inicial com 0, a produção da primeira linha tem que ser igual a segunda sem o epsilon.")
+                                    # Quando houver simbolo inicial com 0, a produção da primeira linha tem que ser igual a segunda sem o epsilon
 
                             for p in prod:
                                 if len(p) == 1:
@@ -101,17 +122,20 @@ class Gramatica(Item):
                                             if linhas.index(linha) == 0:
                                                 self.__tem_epsilon = True
                                             else:
-                                                return # Não pode possuir epsilon fora da primeira linha
+                                                return (False, (linhas.index(linha)+1), linha, "O corpo da produção possui epsilon e não é inicial.") # possui epsilon e nao eh inicial
+                                                # Não pode possuir epsilon fora da primeira linha
 
                                     else:
-                                        return # Quando simbolo for unico, não pode possuir simbolo que não é & ou terminal ou numero
+                                        return (False, linhas.index(linha)+1, linha, "Quando o símbolo for único, não deve possuir símbolo que não é & ou terminal.")
+                                        # Quando simbolo for unico, não pode possuir simbolo que não é & ou terminal ou numero
 
                                 if len(p) >= 2:
                                     terminal = p[0]
                                     nao_terminal = p[1:]
 
                                     if (nao_terminal == self.__simbolo_inicial and self.__tem_epsilon):
-                                        return # Quando possuir epsilon, não pode haver produção que retorna para simbolo inicial
+                                        return (False, linhas.index(linha)+1, linha, "Quando possuir epsilon, não pode haver produção que retorna para simbolo inicial.")
+                                        # Quando possuir epsilon, não pode haver produção que retorna para simbolo inicial
 
                                     if self.__simbolo_inicial[-1:] == '0' and nao_terminal == self.__simbolo_inicial[:-1]:
                                         volta_inicio = True
@@ -122,27 +146,31 @@ class Gramatica(Item):
                                         producoes.append(p)
 
                                     else:
-                                        return # terminal possui letra maiuscula ou não terminal possui letra minuscula
+                                        return (False, linhas.index(linha)+1, linha, "O terminal possui letra maiuscula ou não terminal possui letra minuscula")
+                                        # terminal possui letra maiuscula ou não terminal possui letra minuscula
 
                             tmp_producoes[chave] = producoes
 
                         else:
-                            return # Simbolo antes de -> não pode ter letras minusculas
+                            return (False, (linhas.index(linha)+1), linha, "O símbolo "+li[0]+" antes de -> não pode ter letras minusculas.") # Simbolo nao eh maiuscula
+                            # Simbolo antes de -> não pode ter letras minusculas
 
                     else:
-                        return # Sem simbolo a esquerda ou direita de ->
+                        return (False, (linhas.index(linha)+1), linha, "Sem símbolo a esquerda ou direita de ->.") # Sem simbolo a esquerda ou direita de ->
 
                 else:
-                    return # Sem simbolo ->
+                    return (False, (linhas.index(linha)+1), linha, "Sem símbolo ->.") # Sem simbolo ->
 
         if (not volta_inicio) and self.__simbolo_inicial[-1:] == '0':
-            return
+            return (False, 0, "", "Existe uma cabeça de produção S', mas não existe S. Portanto, S' não precisa existir.")
 
         for n in self.__n:
             if n not in tmp_producoes:
-                return # Possui simbolo não terminal que não é chamado em nenhuma produção a direita
+                return (False, 0, "", "A gramática possui símbolo não terminal que não é chamado em nenhuma produção a direita.")
+                # Possui simbolo não terminal que não é chamado em nenhuma produção a direita
 
         self.__producoes = tmp_producoes
+        return (True, 0, "", "")
 
 
     def is_int(self, str):
