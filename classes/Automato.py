@@ -731,35 +731,72 @@ class Automato(Item):
 
         return unionAF
 
-    # Retorna a versão negada do automato
-    def negacao(self):
-        simbolos = self.getSimbolos()
-        transicoes = self.getTransicoes()
-        estados = []
-        for i in self.getEstados():
-            if(i.getTipo() == 1):
-                i.setTipo(2)
-            elif(i.getTipo() == 2):
-                i.setTipo(1)
-            elif(i.getTipo() == 3):
-                i.setTipo(0)
-            elif(i.getTipo() == 0):
-                i.setTipo(3)
-            estados.append(i)
-        nome = "Negação {af1}".format(af1 = self.get_nome())
-        negacaoAF = Automato(nome)
-        negacaoAF.setEstados(estados)
-        negacaoAF.setTransicoes(transicoes)
-        negacaoAF.setSimbolos(simbolos)
-        return negacaoAF
-
     # Retorna a interseção entre dois automatos
     def intersecao(self, af):
-        negacaoAF1 = self.negacao()
-        negacaoAF2 = af.negacao()
-        uniaoAF1_AF2 = negacaoAF1.uniao(negacaoAF2)
-        intersecAF = uniaoAF1_AF2.negacao()
-        nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome())
-        intersecAF.set_nome(nome)
+        simbolos_af1 = self.getSimbolos()
+        simbolos_af2 = af.getSimbolos()
+        simbolos = list(set(simbolos_af1).intersection(set(simbolos_af2)))
+        if(simbolos == [] or len(simbolos_af1) != len(simbolos_af2)):
+            return None
+        else:
+            nome = "Interseção {af1} + {af2}".format(af1 = self.get_nome(), af2 = af.get_nome())
+            intersecAF = Automato(nome)
+            self.preencheAutomato()
+            af.preencheAutomato()
+            estados = []
+            for i in self.getEstados():
+                for j in af.getEstados():
+                    if((i.getTipo() == 0 and j.getTipo() == 0) or (i.getTipo() == 0 and j.getTipo() == 3) or (i.getTipo() == 3 and j.getTipo() == 0)):
+                        nome_estado = i.getNome() + j.getNome()
+                        estado_inicial = Estado(nome_estado, 0)
+                        estados.append(estado_inicial)
+                    elif((i.getTipo() == 2 and j.getTipo() == 2) or (i.getTipo() == 2 and j.getTipo() == 3) or (i.getTipo() == 3 and j.getTipo() == 2)):
+                        nome_estado = i.getNome() + j.getNome()
+                        estado_final = Estado(nome_estado, 2)
+                        estados.append(estado_final)
+                    elif(i.getTipo() == 3 and j.getTipo() == 3):
+                        nome_estado = i.getNome() + j.getNome()
+                        estado_final = Estado(nome_estado, 3)
+                        estados.append(estado_final)
+                    else:
+                        nome_estado = i.getNome() + j.getNome()
+                        estado = Estado(nome_estado, 1)
+                        estados.append(estado)
+            
+            intersecAF.setEstados(estados)
+            intersecAF.setSimbolos(simbolos)
+            
+            transicoes = []
+            for i in self.getEstados():
+                for j in af.getEstados():
+                    for x in simbolos:
+                        sucessor = []
+                        nome_estado = i.getNome() + j.getNome()
+                        estado = intersecAF.procurarEstado(nome_estado)
+                        temp = self.getTransicao(i, x)
+                        temp2 = af.getTransicao(j, x)
+                        nome_sucessor = temp.getEstadosChegada()[0].getNome() + temp2.getEstadosChegada()[0].getNome()
+                        sucessor.append(intersecAF.procurarEstado(nome_sucessor))
+                        transicao = Transicao(estado, x, sucessor)
+                        transicoes.append(transicao)
 
-        return intersecAF
+            for x in transicoes:
+                chegada = x.getEstadosChegada()
+                for w in chegada:
+                    if(w == "-"):
+                        index = chegada.index("-")
+                        chegada.pop(index)
+
+            intersecAF.setTransicoes(transicoes)
+
+            return intersecAF
+    
+    # Retorna um automato sem transições indefinidas
+    def preencheAutomato(self):
+        for i in self.getEstados():
+            for j in self.getSimbolos():
+                transicao = self.getTransicao(i, j)
+                if(transicao == None):
+                    nova_transicao = Transicao(i, j, ["-"])
+                    self.addTransicao(nova_transicao)
+

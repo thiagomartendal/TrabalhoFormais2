@@ -285,6 +285,10 @@ def uniaoInterseccaoAutomato(tipo):
         if tipo == 0:
             automato3 = automato1.uniao(automato2)
         elif tipo == 1:
+            if(not automato1.deterministico()):
+                automato1 = automato1.determinizar()
+            elif(not automato2.deterministico()):
+                automato2 = automato2.determinizar()
             automato3 = automato1.intersecao(automato2)
         listaItens.getLista()[int(posAutomato1)] = automato3
         listaItens.removeItem(int(posAutomato2))
