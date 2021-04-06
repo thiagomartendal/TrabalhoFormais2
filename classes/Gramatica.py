@@ -162,7 +162,7 @@ class Gramatica(Item):
                     return (False, (linhas.index(linha)+1), linha, "Sem símbolo ->.") # Sem simbolo ->
 
         if (not volta_inicio) and self.__simbolo_inicial[-1:] == '0':
-            return (False, 0, "", "Existe uma cabeça de produção S', mas não existe S. Portanto, S' não precisa existir.")
+            return (False, 0, "", "Não existe nenhuma transição para S.")
 
         for n in self.__n:
             if n not in tmp_producoes:
