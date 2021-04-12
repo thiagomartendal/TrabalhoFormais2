@@ -47,7 +47,7 @@ class Expressao(Item):
     def gerar_nodo(self, expressao):
         subexpressao = self.remover_parenteses_externos(expressao)
 
-        if len(subexpressao) == 1:
+        if len(subexpressao) == 1 or (len(subexpressao) == 3 and subexpressao[0] == "'" and subexpressao[2] == "'"):
             return NodoFolha(subexpressao)
         else:
             operador_div = None
@@ -58,9 +58,13 @@ class Expressao(Item):
             for i in range(0, len(subexpressao)):
                 char = subexpressao[i]
                 if char == "(":
-                    parenteses_abertos += 1
+                    if i > 0 and i < (len(subexpressao)-1):
+                        if not(subexpressao[i-1] == "'" and subexpressao[i+1] == "'"):
+                            parenteses_abertos += 1
                 elif char == ")":
-                    parenteses_abertos -= 1
+                    if i > 0 and i < (len(subexpressao)-1):
+                        if not(subexpressao[i-1] == "'" and subexpressao[i+1] == "'"):
+                            parenteses_abertos -= 1
                 elif parenteses_abertos == 0:
                     if char == "|" and prioridade_div < 2:
                         operador_div = OperacaoER.UNIAO
@@ -104,7 +108,8 @@ class Expressao(Item):
     def verifica_validade(self, expressao):
         if not expressao:
             return (False, "A expressão não pode ser vazia.") # A expressão não pode ser vazia
-        chars_validos = string.ascii_lowercase + string.digits + "|.*?()"
+        chars_validos = string.ascii_lowercase + string.digits + "|.*?()" + "+-/,;{}=<>'" + string.ascii_uppercase + '"'
+        simbolo = string.ascii_lowercase + string.digits + "*()+-/,;{}=<>'" + string.ascii_uppercase + '"'
         nivel_parentesis = 0
         char_anterior = " "
         i_real = 0
@@ -112,15 +117,18 @@ class Expressao(Item):
             char = expressao[i]
             if char in chars_validos:
                 if i > 1:
-                    if char_anterior in "|.(" and char in "|.*?)":
+                    if (char_anterior in "|.(" and char in "|.?*)"):
                         return (False, "Simbolo não esperado em alguma posição.") # Simbolo não esperado em alguma posição
                     elif char_anterior in "*?" and char in "*?":
                         return (False, "Simbolo não esperado em alguma posição.") # Simbolo não esperado em alguma posição
 
                 if char == "(":
-                    nivel_parentesis += 1
+                    if i > 0 and i < (len(expressao)-1):
+                        if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                            nivel_parentesis += 1
                 elif char == ")":
-                    nivel_parentesis -= 1
+                    if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                        nivel_parentesis -= 1
                     if nivel_parentesis < 0:
                         return (False, "Parenteses fechado sem correspondente em alguma posição.") # Parenteses fechado sem correspondente em alguma posição
                 elif char == ".":
@@ -139,17 +147,20 @@ class Expressao(Item):
         expressao = "".join(expressao.split())
         # Adiciona concatenações implicitas
         expressao = self.expor_concatenacoes_implicitas(expressao)
+        print(expressao)
         return expressao
 
     def expor_concatenacoes_implicitas(self, expressao):
+        chars_validos = string.ascii_lowercase + string.digits + "+-/,;{}=<>'" + string.ascii_uppercase + '"'
         nova_expressao = expressao
         char_anterior = " "
         concats_adicionadas = 0
         for i in range(0, len(expressao)):
             char = expressao[i]
-            if (char_anterior.isalnum() or (char_anterior in ")*?")) and (char.isalnum() or char == "("):
-                nova_expressao = nova_expressao[:i+concats_adicionadas] + '.' + nova_expressao[i+concats_adicionadas:]
-                concats_adicionadas += 1
+            if not((char_anterior in "()*" and char in "'") or (char_anterior in "'" and char in "()*")):
+                if (char_anterior in chars_validos or (char_anterior in ")*?")) and (char in chars_validos or char == "("):
+                    nova_expressao = nova_expressao[:i+concats_adicionadas] + '.' + nova_expressao[i+concats_adicionadas:]
+                    concats_adicionadas += 1
             char_anterior = char
 
         return nova_expressao
@@ -163,14 +174,18 @@ class Expressao(Item):
         while i < comprimento_expr - parenteses_encontrados:
             char = expressao[i]
             if char == "(":
-                nivel += 1
-                if inicio:
-                    parenteses_encontrados = nivel
+                if i > 0 and i < (len(expressao)-1):
+                    if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                        nivel += 1
+                        if inicio:
+                            parenteses_encontrados = nivel
             else:
                 inicio = False
                 if char == ")":
-                    nivel -= 1
-                    parenteses_encontrados = min(parenteses_encontrados, nivel)
+                    if i > 0 and i < (len(expressao)-1):
+                        if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                            nivel -= 1
+                            parenteses_encontrados = min(parenteses_encontrados, nivel)
             i += 1
         return expressao[parenteses_encontrados:comprimento_expr - parenteses_encontrados]
 
@@ -245,5 +260,18 @@ class Expressao(Item):
                 novo_nome = letra
                 break
 
+        if novo_nome == None:
+            found = False
+            for letra in ascii_uppercase:
+                for letra2 in ascii_uppercase:
+                    novo = letra + letra2
+                    if novo not in lista:
+                        novo_nome = novo
+                        found = True
+                        break
+                if found:
+                    break
+
         lista.append(novo_nome)
         return novo_nome
+
