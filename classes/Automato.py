@@ -673,6 +673,8 @@ class Automato(Item):
         palavra_computada = []
         palavra_restante = []
         for i in range(len(palavra)):
+            if palavra[i] not in self.__simbolos:
+                return False
             palavra_computada.append(palavra[i])
             palavra_restante = palavra[i:]
             transicao = self.getTransicao(estado, palavra[i])
