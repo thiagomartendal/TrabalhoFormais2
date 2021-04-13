@@ -219,6 +219,7 @@ class Expressao(Item):
         while len(lista_estados) > 0:
             estado_atual = lista_estados.pop(0)
             composicao_atual = obter_composicao[estado_atual]
+            print(composicao_atual)
 
             for simbolo in composicao_atual:
                 if simbolo != "$":
@@ -237,8 +238,12 @@ class Expressao(Item):
                     else:
                         lista_de_nomes.pop()
                         novo_estado = obter_estado[nova_composicao_como_chave]
+                    
+                    tmpSimbolo = simbolo
+                    if len(simbolo) == 3 and simbolo[0] == "'" and simbolo[2] == "'":
+                        tmpSimbolo = simbolo[1]
 
-                    transicao = Transicao(estado_atual, simbolo, [novo_estado])
+                    transicao = Transicao(estado_atual, tmpSimbolo, [novo_estado])
                     automato.addTransicao(transicao)
                 else:
                     if estado_atual.getTipo() == 1:
