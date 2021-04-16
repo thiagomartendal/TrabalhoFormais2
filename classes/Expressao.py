@@ -61,10 +61,14 @@ class Expressao(Item):
                     if i > 0 and i < (len(subexpressao)-1):
                         if not(subexpressao[i-1] == "'" and subexpressao[i+1] == "'"):
                             parenteses_abertos += 1
+                    else:
+                        parenteses_abertos += 1
                 elif char == ")":
                     if i > 0 and i < (len(subexpressao)-1):
                         if not(subexpressao[i-1] == "'" and subexpressao[i+1] == "'"):
                             parenteses_abertos -= 1
+                    else:
+                        parenteses_abertos -= 1
                 elif parenteses_abertos == 0:
                     if char == "|" and prioridade_div < 2:
                         operador_div = OperacaoER.UNIAO
@@ -126,8 +130,13 @@ class Expressao(Item):
                     if i > 0 and i < (len(expressao)-1):
                         if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
                             nivel_parentesis += 1
+                    else:
+                        nivel_parentesis += 1
                 elif char == ")":
-                    if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                    if i > 0 and i < (len(expressao)-1):
+                        if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
+                            nivel_parentesis -= 1
+                    else:
                         nivel_parentesis -= 1
                     if nivel_parentesis < 0:
                         return (False, "Parenteses fechado sem correspondente em alguma posição.") # Parenteses fechado sem correspondente em alguma posição
@@ -147,7 +156,7 @@ class Expressao(Item):
         expressao = "".join(expressao.split())
         # Adiciona concatenações implicitas
         expressao = self.expor_concatenacoes_implicitas(expressao)
-        print(expressao)
+        #print(expressao)
         return expressao
 
     def expor_concatenacoes_implicitas(self, expressao):
@@ -179,6 +188,10 @@ class Expressao(Item):
                         nivel += 1
                         if inicio:
                             parenteses_encontrados = nivel
+                else:
+                    nivel += 1
+                    if inicio:
+                        parenteses_encontrados = nivel
             else:
                 inicio = False
                 if char == ")":
@@ -186,6 +199,10 @@ class Expressao(Item):
                         if not(expressao[i-1] == "'" and expressao[i+1] == "'"):
                             nivel -= 1
                             parenteses_encontrados = min(parenteses_encontrados, nivel)
+                    else:
+                        nivel -= 1
+                        parenteses_encontrados = min(parenteses_encontrados, nivel)
+
             i += 1
         return expressao[parenteses_encontrados:comprimento_expr - parenteses_encontrados]
 
@@ -219,7 +236,7 @@ class Expressao(Item):
         while len(lista_estados) > 0:
             estado_atual = lista_estados.pop(0)
             composicao_atual = obter_composicao[estado_atual]
-            print(composicao_atual)
+            #print(composicao_atual)
 
             for simbolo in composicao_atual:
                 if simbolo != "$":
