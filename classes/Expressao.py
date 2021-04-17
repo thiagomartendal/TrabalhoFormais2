@@ -21,8 +21,12 @@ class Expressao(Item):
         return self.__valido
 
     def parse(self, expressao):
-        arv = self.gerar_arvore(expressao)
-        self.__valido = arv[0]
+        try:
+            arv = self.gerar_arvore(expressao)
+            self.__valido = arv[0]
+        except:
+            arv = (False, "Erro ao criar expressao")
+            self.__valido = arv[0]
         return arv
 
     def to_string(self):
