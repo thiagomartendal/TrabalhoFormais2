@@ -30,22 +30,33 @@ def main():
         elif request.form.get('avaliar') == "Avaliar":
             arr = avaliar()
             return render_template('index.html', palavra=arr[0], res=arr[1])
+        elif request.form.get('testar-codigo') == "Confirmar":
+            codigo, tabela = reconhecerLinguagem()
+            return render_template('index.html', tipo="RE", codigoFonte=codigo, tabelaSimbolos=tabela)
     return render_template('index.html')
 
 @app.route("/editar", methods=['GET', 'POST'])
-def edicaoAutomato():
+def editar():
     if request.args.get('tipo') == "AF":
-        editarAutomato()
+        if request.form.get('editar-automato') == "Confirmar":
+            erro, linha, textoLinha, msg, nomeAutomato, textoAutomato = editarAutomato()
+            if erro is False:
+                return render_template('editar.html', tipo="AF", tipoErro="AF", linha=linha, textoLinha=textoLinha, msg=msg, nomeAutomato=nomeAutomato, textoAutomato=textoAutomato)
         arr = retornarTextoAutomato()
         return render_template('editar.html', tipo="AF", nomeAutomato=arr[0], textoAutomato=arr[1], posicao=arr[2])
     elif request.args.get('tipo') == "GR":
-        editarGramatica()
+        if request.form.get('editar-gramatica') == "Confirmar":
+            erro, linha, textoLinha, msg, nomeGramatica, textoGramatica = editarGramatica()
+            if erro is False:
+                return render_template('editar.html', tipo="GR", tipoErro="GR", linha=linha, textoLinha=textoLinha, msg=msg, nomeGramatica=nomeGramatica, textoGramatica=textoGramatica)
         arr = retornarTextoGramatica()
         return render_template('editar.html', tipo="GR", nomeGramatica=arr[0], textoGramatica=arr[1], posicao=arr[2])
     elif request.args.get('tipo') == "ER":
-        editarExpressao()
+        if request.form.get('editar-expressao') == "Confirmar":
+            erro, msg, nomeExpressao, textoExpressao = editarExpressao()
+            if erro is False:
+                return render_template('editar.html', tipo="ER", tipoErro="ER", msg=msg, nomeExpressao=nomeExpressao, textoExpressao=textoExpressao)
         arr = retornarTextoExpressao()
-        print(arr)
         return render_template('editar.html', tipo="ER", nomeExpressao=arr[0], textoExpressao=arr[1], posicao=arr[2])
     return render_template('editar.html')
 

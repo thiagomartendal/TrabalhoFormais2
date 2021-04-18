@@ -24,6 +24,23 @@
           <input type="submit" name="editar-automato" value="Confirmar" class="btn" />
           <a href="/" class="lk">Página Inicial</a>
         </form>
+        {% if tipoErro == "AF" %}
+          <script type="text/javascript">
+            let y = document.getElementById("nome-automato")
+            let z = document.getElementById("texto-automato")
+            x.style.display = "block"
+            y.value = `{{ nomeExpressao|safe }}`
+            z.value = `{{ textoExpressao|safe }}`
+          </script>
+          <br />
+          <div class="erro">
+            Erro: {{ msg }}
+            <br />
+            {% if linha > 0 %}
+              Linha {{ linha }}: {{ textoLinha }}
+            {% endif %}
+          </div>
+        {% endif %}
         {% elif tipo == "GR" %}
         <form method="post">
           Nome da Gramática: <input type="text" name="nome-gramatica" value="{{ nomeGramatica }}" required />
@@ -36,6 +53,24 @@
           <input type="submit" name="editar-gramatica" value="Confirmar" class="btn" />
           <a href="/" class="lk">Página Inicial</a>
         </form>
+        {% if tipoErro == "GR" %}
+          <script type="text/javascript">
+            let x = document.getElementById("fazer-gramatica")
+            let y = document.getElementById("nome-gramatica")
+            let z = document.getElementById("texto-gramatica")
+            x.style.display = "block"
+            y.value = `{{ nomeGramatica|safe }}`
+            z.value = `{{ textoGramatica|safe }}`
+          </script>
+          <br />
+          <div class="erro">
+            Erro: {{ msg }}
+            <br />
+            {% if linha > 0 %}
+              Linha {{ linha }}: {{ textoLinha }}
+            {% endif %}
+          </div>
+        {% endif %}
         {% elif tipo == "ER" %}
         <form method="post">
           Nome da Expressão: <input type="text" name="nome-expressao" value="{{ nomeExpressao }}" required />
@@ -48,6 +83,20 @@
           <input type="submit" name="editar-expressao" value="Confirmar" class="btn" />
           <a href="/" class="lk">Página Inicial</a>
         </form>
+        {% if tipoErro == "ER" %}
+          <script type="text/javascript">
+            let x = document.getElementById("fazer-expressao")
+            let y = document.getElementById("nome-expressao")
+            let z = document.getElementById("texto-expressao")
+            x.style.display = "block"
+            y.value = `{{ nomeExpressao|safe }}`
+            z.value = `{{ textoExpressao|safe }}`
+          </script>
+          <br />
+          <div class="erro">
+            Erro: {{ msg }}
+          </div>
+        {% endif %}
         {% endif %}
       </div>
     </section>

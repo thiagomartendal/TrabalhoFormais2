@@ -61,6 +61,7 @@
           <input type="button" value="Expressao Regular" class="btn" onclick="novaER()" />
           <input type="button" value="União de Autômatos" class="btn" onclick="uniaoAF()" />
           <input type="button" value="Intersecção de Autômatos" class="btn" onclick="interseccaoAF()" />
+          <input type="button" value="Reconhecimento Léxico" class="btn" onclick="reconhecimentoLexico()" />
         </nav>
         <div id="fazer-automato" class="forms-inicio">
           <h1>Novo Autômato</h1>
@@ -85,6 +86,7 @@
               y.value = `{{ nomeAutomato|safe }}`
               z.value = `{{ textoAutomato|safe }}`
             </script>
+            <br />
             <div class="erro">
               Erro: {{ msg }}
               <br />
@@ -116,6 +118,7 @@
               y.value = `{{ nomeGramatica|safe }}`
               z.value = `{{ textoGramatica|safe }}`
             </script>
+            <br />
             <div class="erro">
               Erro: {{ msg }}
               <br />
@@ -147,6 +150,7 @@
               y.value = `{{ nomeExpressao|safe }}`
               z.value = `{{ textoExpressao|safe }}`
             </script>
+            <br />
             <div class="erro">
               Erro: {{ msg }}
             </div>
@@ -223,6 +227,51 @@
             <br />
             <input type="submit" name="interseccao-automato" value="Confirmar" class="btn" />
           </form>
+        </div>
+        <div id="reconhecimento-lexico" class="forms-inicio">
+          <div id="entrada-reconhecimento-lexico">
+            <h1>Reconhecimento Lexico</h1>
+            <br />
+            <form method="post">
+              Código
+              <br />
+              <textarea id="texto-codigo" name="texto-codigo" required></textarea>
+              <br />
+              <input type="submit" name="testar-codigo" value="Confirmar" class="btn" />
+            </form>
+          </div>
+          {% if tipo == "RE" %}
+            <script type="text/javascript">
+              let x = document.getElementById("reconhecimento-lexico")
+              let y = document.getElementById("entrada-reconhecimento-lexico")
+              let z = document.getElementById("texto-codigo")
+              x.style.display = "block"
+              x.style.width = 1000;
+              y.style.float = "left"
+              z.value = `{{ codigoFonte|safe }}`
+            </script>
+            <br />
+            <table id="tabela-simbolos" border="1">
+              <tr>
+                <th>
+                  Palavra
+                </th>
+                <th>
+                  Mensagem
+                </th>
+              </tr>
+              {% for linha in tabelaSimbolos %}
+                <tr>
+                  <td>
+                    {{ linha.0 }}
+                  </td>
+                  <td>
+                    {{ linha.1 }}
+                  </td>
+                <tr>
+              {% endfor %}
+            </table>
+          {% endif %}
         </div>
         <div id="reconhecimento-sentenca" class="msgbox">
           <div class="conteudo">

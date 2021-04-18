@@ -259,7 +259,7 @@ class Expressao(Item):
                     else:
                         lista_de_nomes.pop()
                         novo_estado = obter_estado[nova_composicao_como_chave]
-                    
+
                     tmpSimbolo = simbolo
                     if len(simbolo) == 3 and simbolo[0] == "'" and simbolo[2] == "'":
                         tmpSimbolo = simbolo[1]
@@ -300,4 +300,3 @@ class Expressao(Item):
 
         lista.append(novo_nome)
         return novo_nome
-

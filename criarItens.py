@@ -41,7 +41,6 @@ def criarGramatica():
                 return (erro1, linha1, textoLinha1, msg1, nome, texto)
             erro2, linha2, textoLinha2, msg2 = gramatica.parse(texto)
             if erro2 is False:
-                print("Houve um erro.")
                 return (erro2, linha2, textoLinha2, msg2, nome, texto)
             listaItens.adicionaItem(gramatica)
     return (True, 0, "", "", "", "")
@@ -72,9 +71,13 @@ def editarAutomato():
             texto = request.form.get('texto-automato', defaultT)
             pos = request.args.get('pos', defaultI)
             automato = listaItens.getItem(int(pos))
+            erro, linha, textoLinha, msg = automato.reconhecerErros(texto)
+            if erro is False:
+                return (erro, linha, textoLinha, msg, nome, texto)
             automato.set_nome(nome)
             automato.parse(texto)
             listaItens.getLista()[int(pos)] = automato
+    return (True, 0, "", "", "", "")
 
 def retornarTextoAutomato():
     global listaItens
@@ -121,8 +124,14 @@ def editarGramatica():
             pos = request.args.get('pos', defaultI)
             gramatica = listaItens.getItem(int(pos))
             gramatica.set_nome(nome)
-            gramatica.parse(texto)
+            erro1, linha1, textoLinha1, msg1 = gramatica.reconhecerErros(texto)
+            if erro1 is False:
+                return (erro1, linha1, textoLinha1, msg1, nome, texto)
+            erro2, linha2, textoLinha2, msg2 = gramatica.parse(texto)
+            if erro2 is False:
+                return (erro2, linha2, textoLinha2, msg2, nome, texto)
             listaItens.getLista()[int(pos)] = gramatica
+    return (True, 0, "", "", "", "")
 
 def retornarTextoGramatica():
     global listaItens
@@ -156,8 +165,11 @@ def editarExpressao():
             pos = request.args.get('pos', defaultI)
             expressao = listaItens.getItem(int(pos))
             expressao.set_nome(nome)
-            expressao.parse(texto)
+            erro, msg = expressao.parse(texto)
+            if erro is False:
+                return (erro, msg, nome, texto)
             listaItens.getLista()[int(pos)] = expressao
+    return (True, "", "", "")
 
 def retornarTextoExpressao():
     global listaItens
@@ -285,10 +297,169 @@ def uniaoInterseccaoAutomato(tipo):
         if tipo == 0:
             automato3 = automato1.uniao(automato2)
         elif tipo == 1:
-            if(not automato1.deterministico()):
-                automato1 = automato1.determinizar()
-            elif(not automato2.deterministico()):
-                automato2 = automato2.determinizar()
             automato3 = automato1.intersecao(automato2)
         listaItens.getLista()[int(posAutomato1)] = automato3
         listaItens.removeItem(int(posAutomato2))
+
+def reconhecerLinguagem():
+    defaultC = ""
+    codigo = request.form.get('texto-codigo', defaultC)
+    copiaCodigo = codigo
+    codigo = codigo.lower()
+    linhas = codigo.splitlines()
+    palavras = []
+    for linha in linhas:
+        quebra = linha.split(" ")
+        for p in quebra:
+            if p != '':
+                palavras.append(p)
+
+    expressaoLinguagem1 = "program|if|else|for|while|void|int|double|string|char|float|return|+|-|/|'*'|=|<|>|==|<=|>=|'('|')'|{|}|\"|\'|;|,"
+    expressaoLinguagem2 = "a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|0|1|2|3|4|5|6|7|8|9"
+    expressao1 = Expressao("Palavras Reservadas")
+    expressao1.parse(expressaoLinguagem1)
+    expressao2 = Expressao("Letras e Numeros")
+    expressao2.parse(expressaoLinguagem2)
+    automato1 = expressao1.obter_automato_finito_equivalente() # Verifica se é uma palavra reservada
+    automato2 = expressao2.obter_automato_finito_equivalente() # Verifica se é uma palavra comum
+    # Monta a tabela de significa para cada palavra
+    tabela = []
+    for i in range(len(palavras)):
+        palavra = palavras[i]
+        reconhecePalavraReservada = automato1.reconhecimento(palavra)
+        reconheceLetraNumero = automato2.reconhecimento(palavra)
+        nomeProprio = False
+        if reconheceLetraNumero is True and reconhecePalavraReservada is False:
+            if (i < len(palavras)-1) and palavras[i+1] == "=":
+                tabela.append([palavra, "Nome da Variável"])
+                nomeProprio = True
+            elif (i > 0) and (palavras[i-1] == "void" or palavras[i-1] == "int" or
+            palavras[i-1] == "double" or palavras[i-1] == "float" or
+            palavras[i-1] == "string" or palavras[i-1] == "char" or
+            palavras[i-1] == "return" or palavras[i-1] == "+" or
+            palavras[i-1] == "-" or palavras[i-1] == "*" or palavras[i-1] == "/"):
+                if i < (len(palavras)-1):
+                    if palavras[i+1] == "(":
+                        tabela.append([palavra, "Nome da Função"])
+                    else:
+                        tabela.append([palavra, "Nome da Variável"])
+                else:
+                    tabela.append([palavra, "Nome da Variável"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '<' or palavras[i+1] == '<'):
+                tabela.append([palavra, "Valor comparado"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '>' or palavras[i+1] == '>'):
+                tabela.append([palavra, "Valor comparado"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '==' or palavras[i+1] == '=='):
+                tabela.append([palavra, "Valor comparado"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '<=' or palavras[i+1] == '<='):
+                tabela.append([palavra, "Valor comparado"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '>=' or palavras[i+1] == '>='):
+                tabela.append([palavra, "Valor comparado"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '='):
+                if palavras[i+1] == '(':
+                    tabela.append([palavra, "Nome da Função"])
+                else:
+                    tabela.append([palavra, "Valor atribuído"])
+                nomeProprio = True
+            elif (i > 0) and (i < (len(palavras)-1)) and (palavras[i-1] == '(' or palavras[i-1] == ',' or palavras[i+1] == ',' or palavras[i+1] == ')'):
+                tabela.append([palavra, "Valor passado"])
+                nomeProprio = True
+            elif (i > 0) and (palavras[i-1] == '"'):
+                if i < (len(palavras)-1):
+                    if palavras[i+1] == "\"":
+                        tabela.append([palavra, "String"])
+                    else:
+                        tabela.append([palavra, "String não fechada"])
+                else:
+                    tabela.append([palavra, "String não fechada"])
+                nomeProprio = True
+            elif (i > 0) and (palavras[i-1] == '\''):
+                if i < (len(palavras)-1):
+                    if palavras[i+1] == "\'":
+                        tabela.append([palavra, "Caractere"])
+                    else:
+                        tabela.append([palavra, "Caractere não fechado"])
+                else:
+                    tabela.append([palavra, "Caractere não fechado"])
+                nomeProprio = True
+        if reconhecePalavraReservada is True:
+            simboloFinal = automato1.ultimoSimboloReconhecido()
+            if len(palavra) == 1:
+                if simboloFinal == '+':
+                    tabela.append([palavra, "Operador de adição"])
+                elif simboloFinal == '-':
+                    tabela.append([palavra, "Operador de subtração"])
+                elif simboloFinal == '/':
+                    tabela.append([palavra, "Operador de divisão"])
+                elif simboloFinal == '*':
+                    tabela.append([palavra, "Operador de multiplicação"])
+                elif simboloFinal == '=':
+                    tabela.append([palavra, "Atribuição"])
+                elif simboloFinal == '<':
+                    tabela.append([palavra, "Menor"])
+                elif simboloFinal == '>':
+                    tabela.append([palavra, "Maior"])
+                elif simboloFinal == '(':
+                    tabela.append([palavra, "Parenteses de abertura"])
+                elif simboloFinal == ')':
+                    tabela.append([palavra, "Parenteses de fechamento"])
+                elif simboloFinal == '{':
+                    tabela.append([palavra, "Chave de abertura"])
+                elif simboloFinal == '}':
+                    tabela.append([palavra, "Chave de fechamento"])
+                elif simboloFinal == '"':
+                    tabela.append([palavra, "Aspa"])
+                elif simboloFinal == "'":
+                    tabela.append([palavra, "Apóstrofo"])
+                elif simboloFinal == ";":
+                    tabela.append([palavra, "Fim de sentença"])
+                elif simboloFinal == ",":
+                    tabela.append([palavra, "Separador de sentença"])
+                else:
+                    tabela.append([palavra, "Erro: Símbolo desconhecido"])
+            else:
+                if palavra[0] == 'p' and simboloFinal == 'm':
+                    tabela.append([palavra, "Declaração de programa"])
+                elif (i > 0) and palavras[i-1] == "else" and palavra[0] == 'i' and simboloFinal == 'f':
+                    tabela.append([palavras[i-1]+" "+palavra, "Nova condição na estrutura condicional"])
+                elif palavra[0] == 'i' and simboloFinal == 'f':
+                    tabela.append([palavra, "Inicio de estrutura condicional"])
+                elif palavra[0] == 'e' and simboloFinal == 'e':
+                    tabela.append([palavra, "Nova condição na estrutura condicional"])
+                elif palavra[0] == 'f' and simboloFinal == 'r':
+                    tabela.append([palavra, "Laço de repetição"])
+                elif palavra[0] == 'w' and simboloFinal == 'e':
+                    tabela.append([palavra, "Laço de repetição"])
+                elif palavra[0] == 'v' and simboloFinal == 'd':
+                    tabela.append([palavra, "Tipo vazio"])
+                elif palavra[0] == 'i' and simboloFinal == 't':
+                    tabela.append([palavra, "Tipo numérico"])
+                elif palavra[0] == 'd' and simboloFinal == 'e':
+                    tabela.append([palavra, "Tipo numérico"])
+                elif palavra[0] == 'f' and simboloFinal == 't':
+                    tabela.append([palavra, "Tipo numérico"])
+                elif palavra[0] == 's' and simboloFinal == 'g':
+                    tabela.append([palavra, "Tipo de texto"])
+                elif palavra[0] == 'c' and simboloFinal == 'r':
+                    tabela.append([palavra, "Caractere"])
+                elif palavra[0] == 'r' and simboloFinal == 'n':
+                    tabela.append([palavra, "Declaração de retorno"])
+                elif palavra[0] == '=' and simboloFinal == '=':
+                    tabela.append([palavra, "Igualdade"])
+                elif palavra[0] == '<' and simboloFinal == '=':
+                    tabela.append([palavra, "Menor ou igual"])
+                elif palavra[0] == '>' and simboloFinal == '=':
+                    tabela.append([palavra, "Maior ou igual"])
+                else:
+                    tabela.append([palavra, "Erro: Símbolo Desconhecido"])
+        else:
+            if nomeProprio is False:
+                tabela.append([palavra, "Erro: Símbolo desconhecido"])
+
+    return copiaCodigo, tabela
