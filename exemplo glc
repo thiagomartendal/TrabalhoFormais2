@@ -33,3 +33,8 @@ A -> dA'
 A' -> aS'cA' | &
 
 
+P -> KVC
+K -> cK | &
+V -> vV | F
+F -> fP;F | &
+C -> bVCe | com.;C | &
