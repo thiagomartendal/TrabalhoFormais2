@@ -1,3 +1,19 @@
+from GLC import GLC
+
+glc = GLC("teste")
+glc.parse("E -> E++T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id")
+
+
+#glc2 = GLC("teste2")
+#glc2.parse("S -> AaS'\nS' -> bS' | &\nA -> dA'\nA' -> aS'cA' | &")
+
+
+#glc = GLC("teste")
+#glc.parse("S -> abc | aAbC | A''bBc\nA -> aAb | ab\nA'' -> aA'' | a\nB -> bBc | bc\nC -> cC | c")
+
+
+
+'''
 from Estado import Estado
 from Transicao import Transicao
 from Automato import Automato
@@ -79,4 +95,4 @@ auto2.setEstados([eS, eA, eB, eC])
 auto2.setTransicoes([p1, p2, p3, p4])
 novo4 = auto2.determinizar()
 for transicao in novo4.getTransicoes():
-    print(transicao.getEstadoPartida().getNome(), transicao.getSimbolo(), transicao.getEstadosChegada()[0].getNome())
+    print(transicao.getEstadoPartida().getNome(), transicao.getSimbolo(), transicao.getEstadosChegada()[0].getNome())'''
