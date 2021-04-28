@@ -2,8 +2,7 @@ from .Item import Item, TipoItem
 import string
 
 simbolos_nao_terminais = string.ascii_uppercase + "'"
-simbolos_terminais = string.ascii_lowercase + string.digits + "!#%()*+,-./:;<=>?@[\]^_`{}~"
-alfabeto = string.ascii_lowercase
+simbolos_terminais = string.ascii_lowercase + string.digits + "!#%()*+,.-/:;<=>?@[\]^_`{}~"
 
 
 class GLC(Item):
@@ -12,7 +11,7 @@ class GLC(Item):
         super(GLC, self).__init__(TipoItem.GLC, nome)
         self.__producoes = {} # dicionario de producoes
         self.__nao_terminais_a_direita = set() # conjunto de nao terminais que aparecem a direita de ->
-        self.__nao_terminais_a_esquerda = set() # conjunto de nao terminais que aparecem a esquerda de ->
+        self.__nao_terminais = set() # conjunto de nao terminais que aparecem a esquerda de ->
         self.__terminais = set()
         self.__simbolo_inicial = None
 
@@ -59,7 +58,6 @@ class GLC(Item):
                             prod = li[1].split("|") # separa as producoes
 
                             for p in prod:
-                                producoes.append(p)
                                 if len(p) == 1:
                                     if p in simbolos_nao_terminais:
                                         tmp_nao_terminais_a_direita.add(p)
@@ -77,21 +75,12 @@ class GLC(Item):
                                     terminal = ""
                                     nao_terminal = ""
                                     for i in range(len(p)):
-                                        if p[i] in simbolos_terminais and p[i] in alfabeto:
-                                            terminal += p[i]
-                                            if len(nao_terminal) > 0:
-                                                lista_nao_terminais.add(nao_terminal)
-                                                nao_terminal = ""
-
-                                        elif p[i] in simbolos_terminais and p[i] not in alfabeto:
-                                            if len(terminal) > 0:
-                                                lista_terminais.add(terminal)
-                                                terminal = ""
-
-                                            terminal = p[i]
+                                        if p[i] == "." and len(terminal) > 0:
                                             lista_terminais.add(terminal)
                                             terminal = ""
 
+                                        elif p[i] in simbolos_terminais:
+                                            terminal += p[i]
                                             if len(nao_terminal) > 0:
                                                 lista_nao_terminais.add(nao_terminal)
                                                 nao_terminal = ""
@@ -114,6 +103,7 @@ class GLC(Item):
 
                                         else:
                                             return (False, "Produção precisa ser um não terminal ou um terminal ou &")
+                                    
 
                                     if len(nao_terminal) > 0:
                                         lista_nao_terminais.add(nao_terminal)
@@ -126,6 +116,10 @@ class GLC(Item):
                                     
                                     for simbolo in lista_terminais:
                                         tmp_terminais.add(simbolo)
+
+                                    p = p.replace('.', '')
+
+                                producoes.append(p)
 
                             tmp_producoes[chave] = producoes
 
@@ -144,7 +138,7 @@ class GLC(Item):
                 return (False, "Simbolo não terminal " + vn + " aparece depois de ->, mas não aparece antes de ->")
 
         self.__producoes = tmp_producoes
-        self.__nao_terminais_a_esquerda = tmp_nao_terminais_a_esquerda
+        self.__nao_terminais = tmp_nao_terminais_a_esquerda
         self.__nao_terminais_a_direita = tmp_nao_terminais_a_direita
         self.__terminais = tmp_terminais
 

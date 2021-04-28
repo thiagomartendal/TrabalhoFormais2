@@ -1,7 +1,7 @@
 from GLC import GLC
 
-glc = GLC("teste")
-glc.parse("E -> E++T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id")
+#glc = GLC("teste")
+#print(glc.parse("E -> E+.+T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id"))
 
 
 #glc2 = GLC("teste2")
@@ -11,6 +11,9 @@ glc.parse("E -> E++T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id")
 #glc = GLC("teste")
 #glc.parse("S -> abc | aAbC | A''bBc\nA -> aAb | ab\nA'' -> aA'' | a\nB -> bBc | bc\nC -> cC | c")
 
+
+glc = GLC("teste")
+print(glc.parse("P -> KVC\nK -> cK | &\nV -> vV | F\nF -> fP;F | &\nC -> bVCe | com.;C | &"))
 
 
 '''
