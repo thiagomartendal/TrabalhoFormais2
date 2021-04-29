@@ -1,19 +1,16 @@
 from GLC import GLC
 
 #glc = GLC("teste")
-#print(glc.parse("E -> E+.+T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id"))
-
-
-#glc2 = GLC("teste2")
-#glc2.parse("S -> AaS'\nS' -> bS' | &\nA -> dA'\nA' -> aS'cA' | &")
-
+#print(glc.parse("E,T,F\n+,-,*,/,(,),id\nE -> E+T | E-T | T\nT -> T*F | T/F | F\nF -> (E) | id"))
 
 #glc = GLC("teste")
-#glc.parse("S -> abc | aAbC | A''bBc\nA -> aAb | ab\nA'' -> aA'' | a\nB -> bBc | bc\nC -> cC | c")
+#print(glc.parse("S',S,A,B\nc,a,b\nS' -> S | &\nS -> AB | A | B | Sc | c\nA -> aA | a\nB -> bB | b"))
 
+#glc = GLC("teste")
+#print(glc.parse("S,S',A,A'\na,b,d,c\nS -> AaS'\nS' -> bS' | &\nA -> dA'\nA' -> aS'cA' | &"))
 
 glc = GLC("teste")
-print(glc.parse("P -> KVC\nK -> cK | &\nV -> vV | F\nF -> fP;F | &\nC -> bVCe | com.;C | &"))
+print(glc.parse("P,K,V,F,C\ne,b,c,v,f,;,com\nP -> KVC\nK -> cK | &\nV -> vV | F\nF -> fP;F | &\nC -> bVCe | com;C | &"))
 
 
 '''
