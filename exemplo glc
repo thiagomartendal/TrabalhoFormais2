@@ -1,38 +1,26 @@
+E,T,F
++,-,*,/,(,),id
 E -> E+T | E-T | T
 T -> T*F | T/F | F
 F -> (E) | id
 
-
-S -> abc | aAbC | A'bBc
-A -> aAb | ab
-A' -> aA' | a
-B -> bBc | bc
-C -> cC | c
-
-
-S -> ABB | CAC
-A -> a
-B -> Bc | ABB
-C -> bB | a
-
-
-S -> aS | SB | SS | b
-A -> ASB | c
-B -> b
-
-
+S',S,A,B
+c,a,b
 S' -> S | &
 S -> AB | A | B | Sc | c
 A -> aA | a
 B -> bB | b
 
-
+S,S',A,A'
+a,b,d,c
 S -> AaS'
 S' -> bS' | &
 A -> dA'
 A' -> aS'cA' | &
 
 
+P,K,V,F,C
+e,b,c,v,f,;,com
 P -> KVC
 K -> cK | &
 V -> vV | F
