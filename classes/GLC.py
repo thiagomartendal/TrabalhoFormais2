@@ -1,4 +1,4 @@
-from Item import Item, TipoItem
+from .Item import Item, TipoItem
 import string
 
 simbolos_nao_terminais = string.ascii_uppercase + "'"
