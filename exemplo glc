@@ -1,8 +1,12 @@
+Exemplo 1:
+
 E,T,F
 +,-,*,/,(,),id
 E -> E+T | E-T | T
 T -> T*F | T/F | F
 F -> (E) | id
+
+Exemplo 2:
 
 S',S,A,B
 c,a,b
@@ -11,6 +15,8 @@ S -> AB | A | B | Sc | c
 A -> aA | a
 B -> bB | b
 
+Exemplo 3:
+
 S,S',A,A'
 a,b,d,c
 S -> AaS'
@@ -18,6 +24,7 @@ S' -> bS' | &
 A -> dA'
 A' -> aS'cA' | &
 
+Exemplo 4:
 
 P,K,V,F,C
 e,b,c,v,f,;,com
