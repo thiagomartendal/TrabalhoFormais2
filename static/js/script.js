@@ -8,6 +8,7 @@ function novoAF() {
   document.getElementById("interseccao-automatos").style.display = "none"
   document.getElementById("uniao-automatos").style.display = "none"
   document.getElementById("reconhecimento-lexico").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("fazer-automato")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"
@@ -22,7 +23,23 @@ function novaGR() {
   document.getElementById("interseccao-automatos").style.display = "none"
   document.getElementById("uniao-automatos").style.display = "none"
   document.getElementById("reconhecimento-lexico").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("fazer-gramatica")
+  if (x.style.display === "none" || x.style.display === "") {
+    x.style.display = "block"
+  } else {
+    x.style.display = "none"
+  }
+}
+
+function novaGLC() {
+  document.getElementById("fazer-automato").style.display = "none"
+  document.getElementById("fazer-gramatica").style.display = "none"
+  document.getElementById("fazer-expressao").style.display = "none"
+  document.getElementById("interseccao-automatos").style.display = "none"
+  document.getElementById("uniao-automatos").style.display = "none"
+  document.getElementById("reconhecimento-lexico").style.display = "none"
+  let x = document.getElementById("fazer-glc")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"
   } else {
@@ -36,12 +53,14 @@ function novaER() {
   document.getElementById("interseccao-automatos").style.display = "none"
   document.getElementById("uniao-automatos").style.display = "none"
   document.getElementById("reconhecimento-lexico").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("fazer-expressao")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"
   } else {
     x.style.display = "none"
   }
+  x.style.display = "none"
 }
 
 function uniaoAF() {
@@ -50,11 +69,11 @@ function uniaoAF() {
   document.getElementById("fazer-expressao").style.display = "none"
   document.getElementById("interseccao-automatos").style.display = "none"
   document.getElementById("reconhecimento-lexico").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("uniao-automatos")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"
   } else {
-    x.style.display = "none"
   }
 }
 
@@ -64,6 +83,7 @@ function interseccaoAF() {
   document.getElementById("fazer-expressao").style.display = "none"
   document.getElementById("uniao-automatos").style.display = "none"
   document.getElementById("reconhecimento-lexico").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("interseccao-automatos")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"
@@ -78,6 +98,7 @@ function reconhecimentoLexico() {
   document.getElementById("fazer-expressao").style.display = "none"
   document.getElementById("uniao-automatos").style.display = "none"
   document.getElementById("interseccao-automatos").style.display = "none"
+  document.getElementById("fazer-glc").style.display = "none"
   let x = document.getElementById("reconhecimento-lexico")
   if (x.style.display === "none" || x.style.display === "") {
     x.style.display = "block"

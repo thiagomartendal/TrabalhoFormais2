@@ -189,6 +189,11 @@ section #painel-centro #fazer-gramatica {
   text-align: center;
 }
 
+section #painel-centro #fazer-glc {
+  display: none;
+  text-align: center;
+}
+
 section #painel-centro #fazer-expressao {
   display: none;
   text-align: center;

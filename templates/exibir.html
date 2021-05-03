@@ -44,6 +44,12 @@
           <div class="texto-gramatica">
           {{ textoGramatica|safe }}
           </div>
+        {% elif tipo == "GLC" %}
+          <h1>{{ nomeGramatica|safe }}</h1>
+          <br />
+          <div class="texto-gramatica">
+          {{ textoGramatica|safe }}
+          </div>
         {% elif tipo == "ER" %}
           <h1>{{ nomeExpressao|safe }}</h1>
           <br />

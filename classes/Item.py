@@ -25,3 +25,4 @@ class TipoItem(Enum):
     AF = 0
     GR = 1
     ER = 2
+    GLC = 3

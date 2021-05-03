@@ -71,6 +71,32 @@
             {% endif %}
           </div>
         {% endif %}
+        {% elif tipo == "GLC" %}
+          <form method="post">
+            Nome da Gramática: <input type="text" name="nome-glc" value="{{ nomeGramatica }}" required />
+            <br />
+            <br />
+            Edição da Gramática
+            <br />
+            <textarea name="texto-glc">{{ textoGramatica }}</textarea>
+            <br />
+            <input type="submit" name="editar-glc" value="Confirmar" class="btn" />
+            <a href="/" class="lk">Página Inicial</a>
+          </form>
+        {% if tipoErro == "GLC" %}
+          <script type="text/javascript">
+            let x = document.getElementById("fazer-glc")
+            let y = document.getElementById("nome-glc")
+            let z = document.getElementById("texto-glc")
+            x.style.display = "block"
+            y.value = `{{ nomeGLC|safe }}`
+            z.value = `{{ textoGLC|safe }}`
+          </script>
+          <br />
+          <div class="erro">
+            Erro: {{ msg }}
+          </div>
+        {% endif %}
         {% elif tipo == "ER" %}
         <form method="post">
           Nome da Expressão: <input type="text" name="nome-expressao" value="{{ nomeExpressao }}" required />

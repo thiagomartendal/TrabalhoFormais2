@@ -4,6 +4,7 @@ from classes.Estado import Estado
 from classes.Automato import Automato
 from classes.Transicao import Transicao
 from classes.Gramatica import Gramatica
+from classes.GLC import GLC
 from classes.Expressao import Expressao
 from classes.ListaDeItens import ListaDeItens
 from classes.Item import TipoItem
@@ -27,7 +28,7 @@ def criarAutomato():
             listaItens.adicionaItem(automato)
     return (True, 0, "", "", "", "")
 
-def criarGramatica():
+def criarGramaticaRegular():
     if request.method == 'POST':
         if request.form.get('criar-gramatica') == "Confirmar":
             global listaItens
@@ -44,6 +45,21 @@ def criarGramatica():
                 return (erro2, linha2, textoLinha2, msg2, nome, texto)
             listaItens.adicionaItem(gramatica)
     return (True, 0, "", "", "", "")
+
+def criarGramaticaLivreDeContexto():
+    if request.method == 'POST':
+        if request.form.get('criar-glc') == "Confirmar":
+            global listaItens
+            defaultN = ""
+            defaultT = ""
+            nome = request.form.get('nome-glc', defaultN)
+            texto = request.form.get('texto-glc', defaultT)
+            gramatica = GLC(nome)
+            erro, msg = gramatica.parse(texto)
+            if erro is False:
+                return (erro, msg, nome, texto)
+            listaItens.adicionaItem(gramatica)
+    return (True, "", "", "")
 
 def criarExpressao():
     if request.method == 'POST':
@@ -151,6 +167,36 @@ def retornarTextoGramatica():
         txt = txt.replace(", ", "|")
         nomeGramatica = gramatica.get_nome()
         textoGramatica = txt
+    return [nomeGramatica, textoGramatica, pos]
+
+def editarGLC():
+    if request.method == 'POST':
+        if request.form.get('editar-glc') == "Confirmar":
+            global listaItens
+            defaultN = ""
+            defaultT = ""
+            defaultI = ""
+            nome = request.form.get('nome-glc', defaultN)
+            texto = request.form.get('texto-glc', defaultT)
+            pos = request.args.get('pos', defaultI)
+            gramatica = listaItens.getItem(int(pos))
+            gramatica.set_nome(nome)
+            erro, msg = gramatica.parse(texto)
+            if erro is False:
+                return (erro, msg, nome, texto)
+            listaItens.getLista()[int(pos)] = gramatica
+    return (True, "", "", "")
+
+def retornarTextoGLC():
+    global listaItens
+    default = ""
+    pos = request.args.get('pos', default)
+    nomeGramatica = ""
+    textoGramatica = ""
+    if pos != "":
+        gramatica = listaItens.getItem(int(pos))
+        nomeGramatica = gramatica.get_nome()
+        textoGramatica = gramatica.getTextoFormacao()
     return [nomeGramatica, textoGramatica, pos]
 
 def editarExpressao():

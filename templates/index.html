@@ -58,6 +58,7 @@
         <nav>
           <input type="button" value="Autômato Finito" class="btn" onclick="novoAF()" />
           <input type="button" value="Gramática Regular" class="btn" onclick="novaGR()" />
+          <input type="button" value="Gramática Livre de Contexto" class="btn" onclick="novaGLC()" />
           <input type="button" value="Expressao Regular" class="btn" onclick="novaER()" />
           <input type="button" value="União de Autômatos" class="btn" onclick="uniaoAF()" />
           <input type="button" value="Intersecção de Autômatos" class="btn" onclick="interseccaoAF()" />
@@ -125,6 +126,34 @@
               {% if linha > 0 %}
                 Linha {{ linha }}: {{ textoLinha }}
               {% endif %}
+            </div>
+          {% endif %}
+        </div>
+        <div id="fazer-glc" class="forms-inicio">
+          <h1>Nova Gramática</h1>
+          <br />
+          <form method="post">
+            Nome da Gramática: <input id="nome-glc" type="text" name="nome-glc" required />
+            <br />
+            <br />
+            Edição da Gramática
+            <br />
+            <textarea id="texto-glc" name="texto-glc" required></textarea>
+            <br />
+            <input type="submit" name="criar-glc" value="Confirmar" class="btn" />
+          </form>
+          {% if tipoErro == "GLC" %}
+            <script type="text/javascript">
+              let x = document.getElementById("fazer-glc")
+              let y = document.getElementById("nome-glc")
+              let z = document.getElementById("texto-glc")
+              x.style.display = "block"
+              y.value = `{{ nomeGLC|safe }}`
+              z.value = `{{ textoGLC|safe }}`
+            </script>
+            <br />
+            <div class="erro">
+              Erro: {{ msg }}
             </div>
           {% endif %}
         </div>
