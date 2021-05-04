@@ -330,3 +330,49 @@ class GLC(Item):
                     self.adicionaProducao(direto[(k, v)], cabeca)
                     break
                 i += 1
+
+    def calculaFirst(self):
+        firsts = []
+        first = set()
+        temp = []
+        for i in self.__nao_terminais:
+            temp.append(i)
+            first = (self.First(i))
+            temp.append(first)
+            firsts.append(temp)
+            temp = []
+        # print(firsts)
+        return firsts
+
+    def First(self, simbolo):
+        first = set()
+        if(simbolo in self.__terminais):
+            first.add(simbolo)
+            return first
+        else:
+            producoes = self.__producoes.get(simbolo)
+            # print("produções: {prod}".format(prod = producoes))
+            for i in producoes:
+                # corpo_producao = i.split()
+                # print(corpo_producao[0][0])
+                if(i[0] in self.__terminais or i == '&'):
+                    first.add(i[0])
+                elif(i[0] in self.__nao_terminais):
+                    # print("simbolo atual: {simb}".format(simb = i))
+                    first_nao_terminal = self.First(i[0])
+                    if('&' in first_nao_terminal):
+                        for x in first_nao_terminal:
+                            first.add(x)
+                        # print(first)
+                        if(len(i) > 1):
+                            for w in range(1, len(i)):
+                                if('&' in first_nao_terminal):
+                                    first_nao_terminal = self.First(i[w])
+                                    for x in first_nao_terminal:
+                                        first.add(x)
+                    for k in first_nao_terminal:
+                        first.add(k)
+                else:
+                    print("simbolo não pertence a GLC")
+        # print("first: {a}".format(a = first))
+        return first
