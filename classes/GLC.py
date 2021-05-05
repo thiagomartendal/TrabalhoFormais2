@@ -169,6 +169,115 @@ class GLC(Item):
         else:
             self.__producoes[simbolo] += producao
 
+    #################################### Começa os Métodos de recursão ####################################
+
+    # Método que remove a recursão procurando primeiro a ocorrência de recursao indireta,
+    # e depois a direta
+    def removerRecursaoAEsquerda(self):
+        dicionario = self.getProducoes().items()
+        while True: # Executa até não ter mais recursões
+            parar = False # Não deve parar até as duas procuras serem falsas e todas as ptoduções tiverem sido lidas
+            producoesLidas = [] # Lista com as cabeças de produções lidas
+            producoesNovas = [] # Lista com produções criadas durante a remoção de recursão direta
+            k = 0 # Contador do total de produções lidas
+            for cabeca, corpo in dicionario: # Percorre as produções
+                recIndireta, prod = self.__procuraRecursaoIndireta(producoesLidas, cabeca, corpo) # Retorna se foi encontrada uma recursão indireta e o não terminal com recursão
+                recDireta = self.__procuraRecursaoDireta(cabeca, corpo) # Retorna se foi encontrada uma recursão direta
+                if recDireta and (recIndireta is False): # Checa se existe apenas recursão direta
+                    np = self.__removerRecursaoDireta(cabeca, corpo) # Remove a recusão direta, retornando novas produções criadas
+                    for n in np: # Loop para adicionar produções novas
+                        if n not in producoesNovas: # Evita repetições
+                            producoesNovas.append(n) # Adiciona nova produção
+                if recIndireta: # Caso exista recursão indireta, está deve ser removida
+                    self.__removerRecursaoIndireta(prod, cabeca, corpo) # Remove a recursão indireta
+                producoesLidas.append(cabeca) # Adiciona a cabeça da produção que foi lida na interação
+                if (recIndireta is False) and (recDireta is False) and (k == (len(dicionario)-1)): # Caso não existam mais recursões autoriza a parada
+                    parar = True # Libera a interrupção do loop
+                k += 1
+            # Abaixo são adicionadas novas produções
+            if len(producoesNovas) > 0:
+                for np in producoesNovas:
+                    adicionaEP = True
+                    for cabeca1, corpo1 in dicionario:
+                        if cabeca1 == np[0]:
+                            if '&' in corpo1:
+                                adicionaEP = False # Evita adicionar mais de um epsilon
+                                break
+                    if adicionaEP:
+                        self.adicionaProducao([np[1], np[2]], np[0])
+                    else:
+                        self.adicionaProducao([np[1]], np[0])
+            if (k == len(dicionario)) and parar: # Em caso de loop infinito, trocar a condição para (k >= len(dicionario)) and parar
+                break
+
+    def __procuraRecursaoIndireta(self, producoesLidas, cabeca, corpo):
+        if len(producoesLidas) > 0: # Checa se existem produções lidas
+            for c in corpo: # Para cada produção no corpo
+                if c[0] in producoesLidas: # Se o primeiro elemento da produção for o não terminal da cabeça de uma produção anterior
+                    return True, c[0] # Existe recursão indireta
+        return False, None # Do contrário, não
+
+    def __procuraRecursaoDireta(self, cabeca, corpo):
+        for c in corpo: # Para cada produção no corpo
+            if c[0] == cabeca: # Se o primeiro elemento da produção for o não terminal da cabeça da produção
+                return True # Existe recursão direta
+        return False # Do contrário, não
+
+    def __removerRecursaoIndireta(self, producaoTroca, cabeca, corpo):
+        dicionario = self.getProducoes().items()
+        novos = [] # Lista de produções modificadas com o coropo no lugar da cabeça, para remover a recursão indireta
+        for c in corpo: # Para cada produção no corpo
+            if c[0] == producaoTroca: # Se o primeiro simbolo da produção for igual a cabeça encontrada na recursão indireta
+                corpo.remove(c) # Remove essa produção do corpo
+                temp = c[1:] # Copia a produção sem a cabeça que causa recursão
+                for cabeca1, corpo1 in dicionario: # Para cada item no dicionário
+                    if cabeca1 == producaoTroca: # Se a cabeça da produção for igual a cabeça que se deve trocar
+                        for c1 in corpo1: # Para cada produção no corpo
+                            novos.append(c1+temp) # Adiciona o corpo da produção junto ao corpo da produção que será atualizada
+        for n in novos: # Para cada produção atualizada
+            corpo.append(n) # Adiciona ao corpo
+        """
+            O Que essa função faz:
+            S -> Aa | b
+            A -> Ac | Sd | a
+            Transforma em:
+            S -> Aa | b
+            A -> Ac | Aad | bd | a
+        """
+
+    def __removerRecursaoDireta(self, cabeca, corpo):
+            dicionario = self.getProducoes().items()
+            novasProducoes = [] # Novas produções encontradas para conter elementos que retiram a recursão direta
+            betas = [] # Novos corpos de produções modificados
+            atualiza = False # Demarca se a atualização deve ocorrer
+            for c in corpo: # Para cada produção no corpo
+                cabecaProd = "" # String que deve procurar a cabeça de produção que é igual a cabeça de produção que causa recursão direta
+                remover = False # Demarca se haverá remoção da cabeça no corpo
+                for i in range(len(c)): # Loop para o tamanho da palavra
+                    cabecaProd += c[i] # Forma a cabeça da produção caractere por caractere
+                    if cabecaProd == cabeca: # Se a cabeça formada for igual a cabeça passada
+                        remover = True # Pode remover da produção
+                        break # Quebra
+                if remover: # Se puder remvoer
+                    atualiza = True # Também pode atualizar
+                    alfa = c # O alfa inicia com uma produção do corpo
+                    alfa = alfa.replace(cabecaProd, "") # Retira a cabeça da produção do alfa
+                    cabecaProd2 = cabecaProd+"'" # Forma uma nova cabeça de produção para adicionar elementos para retirar a recusão
+                    for c1 in corpo: # Para cada produção no corpo
+                        if c1 != c: # Se esse produção for diferente da anterior
+                            if cabecaProd not in c1: # Se a cabeça encontrada não está na produção atual
+                                beta = c1+cabecaProd2 # Forma o beta, Ex: aS'
+                                if beta not in betas: # Evita repetições
+                                    betas.append(beta) # Adiciona o beta na lista de betas
+                    novasProducoes.append([cabecaProd2, alfa+cabecaProd2, "&"]) # Adiciona uma nova produção
+            if atualiza: # Podendo-se atualizar
+                corpo.clear() # Limpar o corpo
+                for b in betas: # Para cada beta
+                    corpo.append(b) # Adiciona no corpo
+            return novasProducoes # Retorna as novas produções
+
+    #################################### Fim dos Métodos de recursão ####################################
+            
     # Método que inicia a fatoração
     # Primeiro deve-se procurar determinismos diretos, pois eles aparecem primeiro em algumas gramáticas,
     # embora se deva verificar qual não-determinismo ocorre primeiro
