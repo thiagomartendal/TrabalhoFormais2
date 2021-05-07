@@ -65,8 +65,6 @@ print()
 print("--------------")
 print()
 
-# Gramática problemática
-
 glc2 = """
 S,B,D
 b,c,d
