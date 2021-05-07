@@ -213,13 +213,23 @@ class GLC(Item):
     def __procuraRecursaoIndireta(self, producoesLidas, cabeca, corpo):
         if len(producoesLidas) > 0: # Checa se existem produções lidas
             for c in corpo: # Para cada produção no corpo
-                if c[0] in producoesLidas: # Se o primeiro elemento da produção for o não terminal da cabeça de uma produção anterior
-                    return True, c[0] # Existe recursão indireta
+                nt = self.__retornaNaoTerminal(c)
+                if nt in producoesLidas: # Se o primeiro elemento da produção for o não terminal da cabeça de uma produção anterior
+                    return True, nt # Existe recursão indireta
         return False, None # Do contrário, não
+
+    def __retornaNaoTerminal(self, producao):
+        naoTerminal = ""
+        for i in range(len(producao)):
+            naoTerminal += producao[i]
+            if naoTerminal in self.__nao_terminais:
+                break
+        return naoTerminal
 
     def __procuraRecursaoDireta(self, cabeca, corpo):
         for c in corpo: # Para cada produção no corpo
-            if c[0] == cabeca: # Se o primeiro elemento da produção for o não terminal da cabeça da produção
+            nt = self.__retornaNaoTerminal(c)
+            if nt == cabeca: # Se o primeiro elemento da produção for o não terminal da cabeça da produção
                 return True # Existe recursão direta
         return False # Do contrário, não
 
@@ -227,7 +237,8 @@ class GLC(Item):
         dicionario = self.getProducoes().items()
         novos = [] # Lista de produções modificadas com o coropo no lugar da cabeça, para remover a recursão indireta
         for c in corpo: # Para cada produção no corpo
-            if c[0] == producaoTroca: # Se o primeiro simbolo da produção for igual a cabeça encontrada na recursão indireta
+            nt = self.__retornaNaoTerminal(c)
+            if nt == producaoTroca: # Se o primeiro simbolo da produção for igual a cabeça encontrada na recursão indireta
                 corpo.remove(c) # Remove essa produção do corpo
                 temp = c[1:] # Copia a produção sem a cabeça que causa recursão
                 for cabeca1, corpo1 in dicionario: # Para cada item no dicionário
