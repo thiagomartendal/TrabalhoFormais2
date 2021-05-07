@@ -278,167 +278,133 @@ class GLC(Item):
 
     #################################### Fim dos Métodos de recursão ####################################
             
-    # Método que inicia a fatoração
-    # Primeiro deve-se procurar determinismos diretos, pois eles aparecem primeiro em algumas gramáticas,
-    # embora se deva verificar qual não-determinismo ocorre primeiro
+    #################################### Começa os Métodos de Fatoração ####################################
+
     def fatorar(self):
         dicionario = self.getProducoes().items()
-        # Deve-se achar uma maneira de verificar quando começar com o determinismo direto
-        l3 = self.__procuraDireto() # Algumas gramáticas devem primeiro verificar o determinismo direto
-        self.__removerDireto(l3)
-        l1 = self.__procuraIndireto()
-        if len(l1) > 0:
-            self.__derivacoesSucessivas(l1)
-        l2 = self.__procuraDireto()
-        self.__removerDireto(l2)
-        l4 = self.__procuraEpsilon()
-        if len(l4) > 0:
-            self.__derivacoesSucessivas(l4)
-            l5 = self.__procuraDireto()
-            self.__removerDireto(l5)
+        for i in range(8):
+            novasProducoes = []
+            for cabeca, corpo in dicionario:
+                direto = self.__procuraNaoDeterminismoDireto(corpo)
+                indireto = self.__procuraNaoDeterminismoIndireto(cabeca, corpo)
+                if direto and (indireto is False):
+                    novaCabeca, producoes = self.__removerNaoDeterminismoDireto(cabeca, corpo)
+                    novasProducoes.append([novaCabeca, producoes])
+                if indireto:
+                    self.__removerNaoDeterminismoIndireto(cabeca, corpo)
+            for n in novasProducoes:
+                for i in range(len(n[1])):
+                    if n[1][i] == '':
+                        n[1][i] = '&'
+                    i += 1
+                self.adicionaProducao(n[1], n[0])
 
-    # Procura não-determinismos indiretos
-    def __procuraIndireto(self):
+    def __procuraNaoDeterminismoDireto(self, corpo):
+        for c1 in corpo:
+            for c2 in corpo:
+                if c1 != c2:
+                    if (c1[0] in self.__terminais) and (c2[0] in self.__terminais) and (c1[0] == c2[0]):
+                        return True
+        return False
+
+    def __procuraNaoDeterminismoIndireto(self, cabeca, corpo):
         dicionario = self.getProducoes().items()
-        i = 0
-        l = []
-        for cabeca, corpo in dicionario:
-            if len(corpo) > 1:
-                k = 0
-                for c in corpo:
-                    if c[0] in self.__nao_terminais:
-                        k += 1
-                if k > 1:
-                    for c in corpo:
-                        if len(c) > 1:
-                            if c[0] in self.__nao_terminais:
-                                if (i, c) not in l:
-                                    l.append((i, c))
-            i += 1
-        l = self.__procuraIndireto1(l, dicionario)
-        return l
+        for c1 in corpo:
+            if c1[0] in self.__nao_terminais:
+                for cabeca1, corpo1 in dicionario:
+                    if c1[0] == cabeca1:
+                        checa = self.__checarCorpoProducao1(corpo, corpo1)
+                        if checa:
+                            return True
+            for c2 in corpo:
+                if c1 != c2:
+                    if c1[0] in self.__nao_terminais and c2[0] in self.__nao_terminais:
+                        checa = self.__checarCorpoProducao2(c1[0], c2[0])
+                        if checa:
+                            return True
+        return False
 
-    # Procura não-determinismos em produções que tem um terminal em comum com uma produção anterior que a chama
-    def __procuraIndireto1(self, l, dicionario):
-        for cabeca1, corpo1 in dicionario:
-            for c1 in corpo1:
-                if c1[0] in self.__terminais:
-                    j = 0
+    def __checarCorpoProducao1(self, corpoAtual, corpoVerificado):
+        for c1 in corpoVerificado:
+            for c2 in corpoAtual:
+                if c1[0] == c2[0]:
+                    return True
+        return False
+
+    def __checarCorpoProducao2(self, cabeca1, cabeca2):
+        dicionario = self.getProducoes().items()
+        for cabeca3, corpo3 in dicionario:
+            for cabeca4, corpo4 in dicionario:
+                if (cabeca1 == cabeca3) and (cabeca2 == cabeca4):
+                    for c3 in corpo3:
+                        for c4 in corpo4:
+                            if c3[0] == c4[0]:
+                                return True
+        return False
+
+    def __removerNaoDeterminismoDireto(self, cabeca, corpo):
+        novaCabeca = cabeca+"'"
+        l = []
+        for c1 in corpo:
+            for c2 in corpo:
+                if c1 != c2:
+                    if (c1[0] in self.__terminais) and (c2[0] in self.__terminais) and (c1[0] == c2[0]):
+                        tmp = c1[0]+novaCabeca
+                        if c1[1:] != novaCabeca:
+                            if c1[1:] not in l:
+                                l.append(c1[1:])
+                        if c2[1:] != novaCabeca:
+                            if c2[1:] not in l:
+                                l.append(c2[1:])
+                        if c1 in corpo:
+                            corpo.remove(c1)
+                        if c2 in corpo:
+                            corpo.remove(c2)
+                        if tmp not in corpo:
+                            corpo.append(tmp)
+        return novaCabeca, l
+
+    def __removerNaoDeterminismoIndireto(self, cabeca, corpo):
+        dicionario = self.getProducoes().items()
+        for c1 in corpo:
+            for c2 in corpo:
+                if c2[0] in self.__nao_terminais:
                     for cabeca2, corpo2 in dicionario:
-                        if corpo1 != corpo2:
-                            for c2 in corpo2:
-                                if len(c2) > 1:
-                                    if c2[0] in self.__nao_terminais:
-                                        for cabeca3, corpo3 in dicionario:
-                                            if c2[0] == cabeca3:
-                                                for c3 in corpo3:
-                                                    if c1[0] == c3[0]:
-                                                        if (j, c2) not in l:
-                                                            l.append((j, c2))
-                        j += 1
-        return l
+                        if c2[0] == cabeca2:
+                            for c3 in corpo2:
+                                if c1[0] == c3[0]:
+                                    beta1 = c2[1:]
+                                    for c3 in self.__retornaCorpoProducao(c2[0]):
+                                        if c2 in corpo:
+                                            corpo.remove(c2)
+                                        if c3+beta1 not in corpo:
+                                            corpo.append(c3+beta1)
+        for c1 in corpo:
+            for c2 in corpo:
+                if c1 != c2:
+                    if c1[0] in self.__nao_terminais and c2[0] in self.__nao_terminais:
+                        beta1 = c1[1:]
+                        beta2 = c2[1:]
+                        if beta1 == beta2:
+                            for c3 in self.__retornaCorpoProducao(c1[0]):
+                                if c1 in corpo:
+                                    corpo.remove(c1)
+                                if c3+beta1 not in corpo:
+                                    corpo.append(c3+beta1)
+                            for c3 in self.__retornaCorpoProducao(c2[0]):
+                                if c2 in corpo:
+                                    corpo.remove(c2)
+                                if c3+beta2 not in corpo:
+                                    corpo.append(c3+beta2)
 
-    # Procura não-determinismos indiretos em produções que contém épsilon
-    def __procuraEpsilon(self):
+    def __retornaCorpoProducao(self, cabeca):
         dicionario = self.getProducoes().items()
-        l = []
-        j = 0
-        for cabeca, corpo in dicionario:
-            for c in corpo:
-                if len(c) > 1:
-                    cabecaProd = ""
-                    aceito = False
-                    for i in range(len(c)):
-                        cabecaProd += c[i]
-                        if (i < len(c)-1) and (c[i+1] != "'"):
-                            if cabecaProd in self.__nao_terminais:
-                                aceito = True
-                                break
-                    if aceito:
-                        for cabeca1, corpo1 in dicionario:
-                            if cabecaProd == cabeca1:
-                                if '&' in corpo1:
-                                    l.append((j, c))
-            j += 1
-        return l
+        for cabeca1, corpo1 in dicionario:
+            if cabeca == cabeca1:
+                return corpo1
+        return []
 
-    # Procura não-determinismos diretos
-    def __procuraDireto(self):
-        dicionario = self.getProducoes().items()
-        i = 0
-        # l = []
-        l = {}
-        for cabeca, corpo in dicionario:
-            if len(corpo) > 1:
-                for C1 in corpo:
-                    for C2 in corpo:
-                        if C1 != C2:
-                            if C1[0] == C2[0]:
-                                l.update({(i, C1[0]): []})
-                                l[(i, C1[0])].append(C2[1:])
-                                l[(i, C1[0])].append(C1[1:])
-            i += 1
-        return l
-
-    # Realiza as derivações sucessivas de gramáticas com não-determinismo indireto
-    def __derivacoesSucessivas(self, indireto):
-        dicionario = self.getProducoes().items()
-        for tupla in indireto:
-            producao = tupla[1]
-            cabecaProd = ""
-            for i in range(len(producao)):
-                cabecaProd += producao[i]
-                if (i < len(producao)-1) and (producao[i+1] != "'"):
-                    if cabecaProd in self.__nao_terminais:
-                        break
-            for k, v in dicionario:
-                if k == cabecaProd:
-                    for p in v:
-                        str = p
-                        for i in range(1, len(producao)):
-                            str += producao[i]
-                        # print(tupla, str)
-                        if '&' not in str:
-                            self.__trocarProducao(tupla, str)
-
-    # Realiza a troca de produções para as derivações sucessivas
-    def __trocarProducao(self, tupla, producao):
-        dicionario = self.getProducoes().items()
-        txt = ""
-        i = 0
-        for cabeca, corpo in dicionario:
-            if i == tupla[0]:
-                if tupla[1] in corpo:
-                    corpo.remove(tupla[1])
-                # print(producao)
-                corpo.append(producao)
-            i += 1
-
-    # Remove o não-determinismo direto
-    def __removerDireto(self, direto):
-        dicionario = self.getProducoes().items()
-        n = []
-        for k, v in direto:
-            i = 0
-            for k1, v1 in dicionario:
-                if i == k:
-                    for p in direto[(k, v)]:
-                        v1.remove(v+p)
-                    cabeca = k1
-                    cabeca += "'"
-                    if (v+cabeca) in v1:
-                        cabeca += "'"
-                        v1.append(v+cabeca)
-                    else:
-                        v1.append(v+cabeca)
-                        for j in range(len(direto[(k, v)])):
-                            if direto[(k, v)][j] == '':
-                                direto[(k, v)][j] = '&'
-                            # else:
-                                # direto[(k, v)][j] = direto[(k, v)][j][1:]
-                    self.adicionaProducao(direto[(k, v)], cabeca)
-                    break
-                i += 1
+    #################################### Fim dos Métodos de Fatoração ####################################
 
     def calculaFirst(self):
         firsts = []
