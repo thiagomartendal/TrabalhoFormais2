@@ -169,7 +169,7 @@ class GLC(Item):
         else:
             self.__producoes[simbolo] += producao
 
-    #################################### Começa os Métodos de recursão ####################################
+    #################################### Começa os Métodos de Recursão ####################################
 
     # Método que remove a recursão procurando primeiro a ocorrência de recursao indireta,
     # e depois a direta
@@ -276,7 +276,7 @@ class GLC(Item):
                     corpo.append(b) # Adiciona no corpo
             return novasProducoes # Retorna as novas produções
 
-    #################################### Fim dos Métodos de recursão ####################################
+    #################################### Fim dos Métodos de Recursão ####################################
             
     #################################### Começa os Métodos de Fatoração ####################################
 
