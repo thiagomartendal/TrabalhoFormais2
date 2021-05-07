@@ -303,9 +303,19 @@ class GLC(Item):
         for c1 in corpo:
             for c2 in corpo:
                 if c1 != c2:
-                    if (c1[0] in self.__terminais) and (c2[0] in self.__terminais) and (c1[0] == c2[0]):
+                    t1 = self.__retornaTerminal(c1)
+                    t2 = self.__retornaTerminal(c2)
+                    if (t1 in self.__terminais) and (t2 in self.__terminais) and (t1 == t2):
                         return True
         return False
+
+    def __retornaTerminal(self, producao):
+        terminal = ""
+        for i in range(len(producao)):
+            terminal += producao[i]
+            if terminal in self.__terminais:
+                break
+        return terminal
 
     def __procuraNaoDeterminismoIndireto(self, cabeca, corpo):
         dicionario = self.getProducoes().items()
@@ -348,21 +358,35 @@ class GLC(Item):
         for c1 in corpo:
             for c2 in corpo:
                 if c1 != c2:
-                    if (c1[0] in self.__terminais) and (c2[0] in self.__terminais) and (c1[0] == c2[0]):
-                        tmp = c1[0]+novaCabeca
-                        if c1[1:] != novaCabeca:
-                            if c1[1:] not in l:
-                                l.append(c1[1:])
-                        if c2[1:] != novaCabeca:
-                            if c2[1:] not in l:
-                                l.append(c2[1:])
+                    t1 = self.__retornaTerminal(c1)
+                    t2 = self.__retornaTerminal(c2)
+                    # if (c1[0] in self.__terminais) and (c2[0] in self.__terminais) and (c1[0] == c2[0]):
+                    if (t1 in self.__terminais) and (t2 in self.__terminais) and (t1 == t2):
+                        tmp = t1+novaCabeca
+                        # p1 = c1.replace(t1, '')
+                        # p2 = c2.replace(t2, '')
+                        p1 = self.__removerTerminal(c1, t1)
+                        p2 = self.__removerTerminal(c2, t2)
+                        if p1 != novaCabeca:
+                            if p1 not in l:
+                                l.append(p1)
+                        if p2 != novaCabeca:
+                            if p2 not in l:
+                                l.append(p2)
                         if c1 in corpo:
                             corpo.remove(c1)
                         if c2 in corpo:
                             corpo.remove(c2)
                         if tmp not in corpo:
                             corpo.append(tmp)
+        # print(novaCabeca, "->", l)
         return novaCabeca, l
+
+    def __removerTerminal(self, producao, terminal):
+        for i in range(len(terminal)):
+            terminal = terminal[1:]
+            producao = producao[1:]
+        return producao
 
     def __removerNaoDeterminismoIndireto(self, cabeca, corpo):
         dicionario = self.getProducoes().items()
