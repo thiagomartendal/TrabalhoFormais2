@@ -91,3 +91,34 @@ for cabeca, corpo in dicionario3:
             print(str(c), end="")
         i += 1
     print()
+
+print()
+print("--------------")
+print()
+
+glc3 = """
+S,B,C,D,E
+a,b,c,d
+S -> aB | aD | Eb | dD
+B -> b
+C -> bB
+D -> d
+E -> aC | aB | cC
+"""
+
+gramatica3 = GLC("Teste")
+gramatica3.parse(glc3)
+gramatica3.fatorar()
+
+dicionario4 = gramatica3.getProducoes().items()
+
+for cabeca, corpo in dicionario4:
+    print(str(cabeca)+"->", end="")
+    i = 0
+    for c in corpo:
+        if i < (len(corpo)-1):
+            print(str(c), end="|")
+        else:
+            print(str(c), end="")
+        i += 1
+    print()
