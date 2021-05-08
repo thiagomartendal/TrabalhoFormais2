@@ -440,7 +440,7 @@ class GLC(Item):
         return []
 
     #################################### Fim dos Métodos de Fatoração ####################################
-
+    # Retorna os conjuntos de Firsts de todos os não terminais
     def calculaFirst(self):
         firsts = []
         first = set()
@@ -451,9 +451,9 @@ class GLC(Item):
             temp.append(first)
             firsts.append(temp)
             temp = []
-        # print(firsts)
         return firsts
 
+    # Calcula o First de um não terminal específico
     def First(self, simbolo):
         first = set()
         if(simbolo in self.__terminais):
@@ -461,19 +461,14 @@ class GLC(Item):
             return first
         else:
             producoes = self.__producoes.get(simbolo)
-            # print("produções: {prod}".format(prod = producoes))
             for i in producoes:
-                # corpo_producao = i.split()
-                # print(corpo_producao[0][0])
                 if(i[0] in self.__terminais or i == '&'):
                     first.add(i[0])
                 elif(i[0] in self.__nao_terminais):
-                    # print("simbolo atual: {simb}".format(simb = i))
                     first_nao_terminal = self.First(i[0])
                     if('&' in first_nao_terminal):
                         for x in first_nao_terminal:
                             first.add(x)
-                        # print(first)
                         if(len(i) > 1):
                             for w in range(1, len(i)):
                                 if('&' in first_nao_terminal):
@@ -484,5 +479,49 @@ class GLC(Item):
                         first.add(k)
                 else:
                     print("simbolo não pertence a GLC")
-        # print("first: {a}".format(a = first))
         return first
+
+    # Retorna os conjuntos Follows de todos os símbolos não terminais
+    def calculaFollow(self):
+        follows = []
+        follow = set()
+        temp = []
+        for i in self.__nao_terminais:
+            temp.append(i)
+            follow = (self.Follow(i))
+            temp.append(follow)
+            follows.append(temp)
+            temp = []
+        return follows
+
+    # Retorna o Follow de um não terminal específico
+    def Follow(self, simbolo):
+        follow = set()
+        print(simbolo)
+        if(simbolo == self.__simbolo_inicial):
+            follow.add("$")
+        for i in self.__nao_terminais:
+            producoes = self.__producoes.get(i)
+            for j in producoes:
+                for k in range(len(j)):
+                    if(j[k] == simbolo):
+                        if(k == len(j) - 1 and not j[k] == i):
+                            follow_cabeca = self.Follow(i)
+                            for w in follow_cabeca:
+                                follow.add(w)
+                        else:
+                            for x in range(k+1, len(j)):
+                                if(j[x] in self.__terminais):
+                                    follow.add(temp)
+                                    break
+                                elif(j[x] in self.__nao_terminais):
+                                    first = self.First(j[x])
+                                    if('&' in first):
+                                        for w in first:
+                                            if(not w == '&'):
+                                                follow.add(w)
+                                    else:
+                                        for w in first:
+                                            follow.add(w)
+                                        break
+        return follow
