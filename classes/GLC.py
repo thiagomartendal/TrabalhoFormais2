@@ -512,7 +512,7 @@ class GLC(Item):
                         else:
                             for x in range(k+1, len(j)):
                                 if(j[x] in self.__terminais):
-                                    follow.add(temp)
+                                    follow.add(j[x])
                                     break
                                 elif(j[x] in self.__nao_terminais):
                                     first = self.First(j[x])
