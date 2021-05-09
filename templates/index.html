@@ -43,6 +43,10 @@
                       {% elif l.1 == "GR" or l.1 == "ER" %}
                         <a href="/converter?pos={{ l.2 }}&tipoConversao={{ l.1 }}AF">Converter em AF</a>
                       {% endif %}
+                      {% if l.1 == "GLC" %}
+                        <a href="/fat?pos={{ l.2 }}">Fatorar</a>
+                        <a href="/rec?pos={{ l.2 }}">Remover Recursão a Esquerda</a>
+                      {% endif %}
                     </div>
                   </div>
                   <br />
@@ -286,6 +290,9 @@
                   Palavra
                 </th>
                 <th>
+                  Token
+                </th>
+                <th>
                   Mensagem
                 </th>
               </tr>
@@ -296,6 +303,9 @@
                   </td>
                   <td>
                     {{ linha.1 }}
+                  </td>
+                  <td>
+                    {{ linha.2 }}
                   </td>
                 <tr>
               {% endfor %}
