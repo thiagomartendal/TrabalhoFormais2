@@ -86,6 +86,7 @@ def exibir():
         return render_template('exibir.html', nomeExpressao=arr[0], textoExpressao=txt, tipo="ER")
     elif request.args.get('tipo') == "GLC":
         arr = retornarTextoGramatica()
+        # print(retornarTextoGramatica())
         txt = "<br />".join(arr[1].split("\n"))
         return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC")
     return render_template('exibir.html')
@@ -141,6 +142,24 @@ def converterItens():
         novoItem = item.obter_automato_finito_equivalente()
         novoItem.ordenarTransicoes()
     listaItens.getLista()[int(pos)] = novoItem
+    return redirect("/")
+
+@app.route('/fat')
+def fatorar():
+    defaultI = ""
+    pos = request.args.get('pos', defaultI)
+    item = listaItens.getItem(int(pos))
+    item.fatorar()
+    # listaItens.getLista()[int(pos)] = glcFatorada
+    return redirect("/")
+
+@app.route('/rec')
+def removerRecursao():
+    defaultI = ""
+    pos = request.args.get('pos', defaultI)
+    item = listaItens.getItem(int(pos))
+    item.removerRecursaoAEsquerda()
+    # listaItens.getLista()[int(pos)] = glcNaoRecursiva
     return redirect("/")
 
 @app.context_processor
