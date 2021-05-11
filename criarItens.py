@@ -160,7 +160,6 @@ def retornarTextoGramatica():
         txt = ""
         dicionario = gramatica.getProducoes().items()
         for k, v in dicionario:
-            # print(k, v)
             corpo = ""
             for i in range(len(v)):
                 if i < (len(v)-1):
@@ -168,13 +167,21 @@ def retornarTextoGramatica():
                 else:
                     corpo += str(v[i])
             txt += str(k)+"->"+corpo+"\n"
-        # txt = txt.replace("[", "")
-        # txt = txt.replace("]", "")
-        # txt = txt.replace("'", "")
-        # txt = txt.replace(", ", "|")
         nomeGramatica = gramatica.get_nome()
         textoGramatica = txt
     return [nomeGramatica, textoGramatica, pos]
+
+def retornaFirstFollow():
+    global listaItens
+    default = ""
+    pos = request.args.get('pos', default)
+    first = ""
+    follow = ""
+    if pos != "":
+        gramatica = listaItens.getItem(int(pos))
+        first = gramatica.calculaFirst()
+        follow = gramatica.calculaFollow()
+    return [first, follow]
 
 def editarGLC():
     if request.method == 'POST':

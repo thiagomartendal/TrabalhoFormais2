@@ -86,9 +86,12 @@ def exibir():
         return render_template('exibir.html', nomeExpressao=arr[0], textoExpressao=txt, tipo="ER")
     elif request.args.get('tipo') == "GLC":
         arr = retornarTextoGramatica()
-        # print(retornarTextoGramatica())
         txt = "<br />".join(arr[1].split("\n"))
-        return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC")
+        try:
+            arr1 = retornaFirstFollow()
+            return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC", first=arr1[0], follow=arr1[1])
+        except RecursionError as e:
+            return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC", first=[], follow=[])
     return render_template('exibir.html')
 
 @app.route('/download', methods=['GET', 'POST'])
@@ -150,7 +153,6 @@ def fatorar():
     pos = request.args.get('pos', defaultI)
     item = listaItens.getItem(int(pos))
     item.fatorar()
-    # listaItens.getLista()[int(pos)] = glcFatorada
     return redirect("/")
 
 @app.route('/rec')
@@ -159,7 +161,6 @@ def removerRecursao():
     pos = request.args.get('pos', defaultI)
     item = listaItens.getItem(int(pos))
     item.removerRecursaoAEsquerda()
-    # listaItens.getLista()[int(pos)] = glcNaoRecursiva
     return redirect("/")
 
 @app.context_processor
