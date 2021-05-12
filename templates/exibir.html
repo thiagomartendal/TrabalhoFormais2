@@ -49,16 +49,6 @@
           <br />
           <div class="texto-gramatica">
           {{ textoGramatica|safe }}
-          <br />
-          {% for f in first %}
-            First({{ f.0 }}) = {{ f.1 }}
-            <br />
-          {% endfor %}
-          <br />
-          {% for f in follow %}
-            Follow({{ f.0 }}) = {{ f.1 }}
-            <br />
-          {% endfor %}
           </div>
         {% elif tipo == "ER" %}
           <h1>{{ nomeExpressao|safe }}</h1>
