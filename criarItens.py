@@ -171,18 +171,6 @@ def retornarTextoGramatica():
         textoGramatica = txt
     return [nomeGramatica, textoGramatica, pos]
 
-def retornaFirstFollow():
-    global listaItens
-    default = ""
-    pos = request.args.get('pos', default)
-    first = ""
-    follow = ""
-    if pos != "":
-        gramatica = listaItens.getItem(int(pos))
-        first = gramatica.calculaFirst()
-        follow = gramatica.calculaFollow()
-    return [first, follow]
-
 def editarGLC():
     if request.method == 'POST':
         if request.form.get('editar-glc') == "Confirmar":

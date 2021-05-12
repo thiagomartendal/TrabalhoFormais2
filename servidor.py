@@ -87,11 +87,7 @@ def exibir():
     elif request.args.get('tipo') == "GLC":
         arr = retornarTextoGramatica()
         txt = "<br />".join(arr[1].split("\n"))
-        try:
-            arr1 = retornaFirstFollow()
-            return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC", first=arr1[0], follow=arr1[1])
-        except RecursionError as e:
-            return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC", first=[], follow=[])
+        return render_template('exibir.html', nomeGramatica=arr[0], textoGramatica=txt, tipo="GLC")
     return render_template('exibir.html')
 
 @app.route('/download', methods=['GET', 'POST'])
