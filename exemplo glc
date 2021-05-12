@@ -33,3 +33,13 @@ K -> cK | &
 V -> vV | F
 F -> fP;F | &
 C -> bVCe | com;C | &
+
+Exemplo 5:
+
+S,A,B,C,D
+a,c,d,e,f
+S -> AC | BC
+A -> aD | cC
+B -> aB | dD
+C -> eC | eA
+D -> fD | CB
